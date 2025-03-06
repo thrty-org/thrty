@@ -1,6 +1,14 @@
 {
   "name": "@thrty/api-zod",
   "version": "1.0.0",
+  "author": "Robin Baum",
+  "license": "ISC",
+  "description": "Middleware for validation and metadata describing request body, response body and query parameters",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thrty-org/thrty.git",
+    "directory": "packages/api-zod"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -18,8 +26,5 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsup"
-  },
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  }
 }

@@ -1,6 +1,13 @@
 {
   "name": "thrty",
   "version": "1.0.0",
+  "author": "Robin Baum",
+  "license": "ISC",
+  "description": "A middleware engine for AWS Lambda, that makes Lambda Functions type-safe, easy to develop and test.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thrty-org/thrty.git"
+  },
   "main": "index.js",
   "scripts": {
     "test": "lerna run test",
@@ -10,9 +17,6 @@
     "packages/*",
     "integration-tests"
   ],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "devDependencies": {
     "@types/jest": "^29.5.14",
     "@types/node": "^22.13.9",

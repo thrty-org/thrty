@@ -1,6 +1,14 @@
 {
   "name": "@thrty/cli",
   "version": "1.0.0",
+  "author": "Robin Baum",
+  "license": "ISC",
+  "description": "CLI for thrty",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thrty-org/thrty.git",
+    "directory": "packages/cli"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -19,9 +27,6 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsup"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "@thrty/api-cdk": "1.0.0",
     "prettier": "^3.5.3",
