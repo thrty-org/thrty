@@ -1,0 +1,19 @@
+{
+  "name": "integration-tests",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@thrty/api": "^1.0.0",
+    "@thrty/api-cdk": "^1.0.0",
+    "@thrty/api-zod": "^1.0.0",
+    "@thrty/core": "^1.0.0",
+    "@thrty/meta": "^1.0.0"
+  }
+}

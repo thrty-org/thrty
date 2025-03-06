@@ -1,0 +1,12 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "target": "esnext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "exclude": ["node_modules"]
+}
