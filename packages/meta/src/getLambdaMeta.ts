@@ -1,4 +1,4 @@
-import glob from 'glob';
+import { glob } from 'glob';
 import { parse } from 'path';
 import { LambdaMeta } from './LambdaMeta';
 
@@ -9,7 +9,7 @@ export interface GetLambdaMetaOptions {
 const defaults = {
   handlerExportName: 'handler',
   lambdaNameTransformer: (path: string) => {
-    const name = parse(path).name.replace(/\.lambda$/, '');
+    const name = parse(path).name.replace(/\Lambda$/, '');
     return name.charAt(0).toUpperCase() + name.slice(1);
   },
 };
@@ -21,7 +21,7 @@ export const getLambdaMeta = (
     lambdaNameTransformer = defaults.lambdaNameTransformer,
   }: GetLambdaMetaOptions = defaults,
 ): LambdaMeta[] =>
-  glob.sync(pattern).map(path => {
+  glob.sync(pattern).map((path) => {
     const lambdaName = lambdaNameTransformer(path);
     const meta = require(path)[handlerExportName]['meta'] ?? {};
 

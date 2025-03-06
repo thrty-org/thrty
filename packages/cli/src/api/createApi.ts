@@ -1,14 +1,15 @@
 import { writeFileSync } from 'fs';
-import { getApiLambdaMeta } from '../../api/src/cdk/getApiLambdaMeta';
-import { GetLambdaMetaOptions } from '@thrty/meta/src/getLambdaMeta';
+import { GetLambdaMetaOptions } from '@thrty/meta';
 import { HttpClientTemplateFactory } from './httpClients/HttpClientTemplateFactory';
 import { ModelFactory, modelSourceKeys } from './models/ModelFactory';
+import { getApiLambdaMeta } from '@thrty/api-cdk';
+import * as prettier from 'prettier';
 
 const lowerFirst = (str: string) => str.charAt(0).toLowerCase() + str.slice(1);
 
 export type CreateApiClientOptions = {
   outPath: string;
-  name: string;
+  exportName: string;
   httpClient: 'axios' | 'fetch';
   models: 'zod' | 'valibot';
   pattern: string;
@@ -17,12 +18,12 @@ export type CreateApiClientOptions = {
   };
 } & GetLambdaMetaOptions;
 
-export const createApiClient = (options: CreateApiClientOptions) => {
-  const httpClient: HttpClientTemplateFactory = require(
-    `./httpClients/${options.httpClient}`,
+export const createApiClient = async (options: CreateApiClientOptions) => {
+  const httpClient: HttpClientTemplateFactory = (
+    await import(`./httpClients/${options.httpClient}`)
   ).default;
-  const modelFactory: ModelFactory = require(`./models/${options.models}`).default;
-  const { pattern, name, outPath, ...rest } = options;
+  const modelFactory: ModelFactory = (await import(`./models/${options.models}`)).default;
+  const { pattern, exportName, outPath, ...rest } = options;
   const metaList = getApiLambdaMeta(pattern, rest);
   const modelsMap = modelFactory(metaList, options);
   const apiFactory = `${httpClient.createGlobals()}
@@ -32,7 +33,7 @@ ${[...modelsMap.entries()]
 export type ${modelName} = ${tsType};`,
   )
   .join('\n')}
-export const ${options.name}Factory = (${httpClient.createOptions()}) => ({
+export const ${exportName} = (${httpClient.createOptions()}) => ({
 ${metaList
   .map((meta) => {
     const requestBodyType = meta.requestBody
@@ -74,5 +75,5 @@ ${metaList
   .join('\n')}
 });
   `.replaceAll('\n\n', '\n');
-  writeFileSync(outPath, apiFactory);
+  writeFileSync(outPath, await prettier.format(apiFactory, { semi: false, parser: 'typescript' }));
 };

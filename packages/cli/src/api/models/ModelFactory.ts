@@ -1,4 +1,4 @@
-import { ApiLambdaMeta } from '../../../api/src/cdk/getApiLambdaMeta';
+import { ApiLambdaMeta } from '@thrty/api-cdk';
 import { CreateApiClientOptions } from '../createApi';
 
 export type Model = { modelName: string; tsType: string };
