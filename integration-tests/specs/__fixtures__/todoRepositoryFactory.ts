@@ -7,7 +7,7 @@ export interface Todo {
 }
 
 export const todoRepositoryFactory = () => {
-  const todos = [];
+  let todos: Todo[] = [];
   return {
     createTodo(title: string): Todo {
       const todo = {
@@ -19,6 +19,17 @@ export const todoRepositoryFactory = () => {
       };
       todos.push(todo);
       return todo;
+    },
+    findTodoById(id: string): Todo | undefined {
+      return todos.find((todo) => todo.id === id);
+    },
+    findTodos(): Todo[] {
+      return todos;
+    },
+    updateTodo(todo: Todo) {
+      const updatedTodo = { ...todo, updatedAt: new Date().toISOString() };
+      todos = todos.map((_todo) => (_todo.id === todo.id ? updatedTodo : _todo));
+      return updatedTodo;
     },
   };
 };

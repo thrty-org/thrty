@@ -8,11 +8,4 @@ export default {
   dts: true,
   clean: true,
   minify: true,
-  banner: ({ format }) => {
-    if (format === 'esm')
-      return {
-        js: `import { createRequire } from 'module'; const require = createRequire(import.meta.url);`,
-      };
-    return {};
-  },
 } satisfies Options;

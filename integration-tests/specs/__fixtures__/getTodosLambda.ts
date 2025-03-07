@@ -4,33 +4,34 @@ import { APIGatewayProxyResult } from 'thirty/types';
 import { inject } from 'thirty/inject';
 import { z } from 'zod';
 import { compose } from '@thrty/core';
-import { post, authorizer } from '@thrty/api';
-import { requestBody, responseBody } from '@thrty/api-zod';
+import { get, authorizer } from '@thrty/api';
+import { responseBody } from '@thrty/api-zod';
 import { todoRepositoryProviders } from './todoRepositoryProviders';
+import { scopes } from './scopes';
 
-const CreateTodoRequestModel = z.object({
-  title: z.string(),
-});
-const CreateTodoResponseModel = z.object({
-  id: z.string(),
-  title: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
+const GetTodoResponseModel = z
+  .object({
+    id: z.string(),
+    title: z.string(),
+    createdAt: z.string(),
+    completed: z.boolean(),
+    updatedAt: z.string(),
+  })
+  .array();
 
 export const handler = compose(
   types<APIGatewayProxyEvent, Promise<APIGatewayProxyResult>>(),
   inject({
     ...todoRepositoryProviders,
   }),
-  post('/todos'),
+  get('/todos'),
+  scopes('todo:read'),
   authorizer('default'),
-  requestBody(CreateTodoRequestModel),
-  responseBody(CreateTodoResponseModel),
+  responseBody(GetTodoResponseModel),
 )(async (event) => {
   const { todoRepository } = event.deps;
 
-  const todo = todoRepository.createTodo(event.requestBody.title);
+  const todo = todoRepository.findTodos();
 
   return {
     statusCode: 201,

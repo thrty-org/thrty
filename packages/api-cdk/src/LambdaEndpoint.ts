@@ -15,7 +15,11 @@ export class LambdaEndpoint extends Construct implements ILambdaEndpoint {
   integrationOptions: LambdaIntegrationOptions | undefined;
   methodOptions: MethodOptions | undefined;
 
-  constructor(scope: Construct, id: string, protected props: LambdaEndpointProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    protected props: LambdaEndpointProps,
+  ) {
     super(scope, id);
     this.fn = this.createFunction();
     this.props.callback?.(this, this.fn);

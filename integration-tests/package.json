@@ -15,5 +15,10 @@
     "@thrty/api-zod": "^1.0.0",
     "@thrty/core": "^1.0.0",
     "@thrty/meta": "^1.0.0"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.(ts)$": "ts-jest"
+    }
   }
 }

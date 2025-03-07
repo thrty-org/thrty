@@ -19,6 +19,7 @@ import { LambdaEndpoint, LambdaEndpointProps } from './LambdaEndpoint';
 import { ApiLambdaMeta, getApiLambdaMeta } from './getApiLambdaMeta';
 import { createHashedKey } from './shared/stageVariables';
 import { STAGE_VARIABLE_PREFIX } from '@thrty/api';
+import { GetLambdaMetaOptions } from '@thrty/meta';
 
 export type Authorizer = Omit<CfnAuthorizerProps, 'restApiId' | 'name' | 'authorizerUri'> & {
   lambdaArn: string;
@@ -27,15 +28,16 @@ export interface ApiBasePathMapping {
   domainNames: string[];
   path: string;
 }
-export interface ApiProps extends RestApiProps {
-  pattern: string;
-  basePathMapping?: ApiBasePathMapping;
-  authorizers?: { [name: string]: Authorizer };
-  sharedCallbackFilename?: string;
-  customLambdaEndpointConstructorMatcher?: (lambdaPath: string) => string;
-  customLambdaEndpointCallbackMatcher?: (lambdaPath: string) => string;
-  defaultLambdaEndpointConstruct?: typeof LambdaEndpoint;
-}
+export type ApiProps = RestApiProps &
+  GetLambdaMetaOptions & {
+    pattern: string;
+    basePathMapping?: ApiBasePathMapping;
+    authorizers?: { [name: string]: Authorizer };
+    sharedCallbackFilename?: string;
+    customLambdaEndpointConstructorMatcher?: (lambdaPath: string) => string;
+    customLambdaEndpointCallbackMatcher?: (lambdaPath: string) => string;
+    defaultLambdaEndpointConstruct?: typeof LambdaEndpoint;
+  };
 export class Api extends Construct {
   protected readonly api: RestApi;
   protected readonly apiLambdaMeta: ApiLambdaMeta[];
@@ -60,6 +62,8 @@ export class Api extends Construct {
       customLambdaEndpointConstructorMatcher,
       customLambdaEndpointCallbackMatcher,
       defaultLambdaEndpointConstruct,
+      lambdaNameTransformer,
+      handlerExportName,
       ...restApiProps
     } = props;
     this.restApiProps = restApiProps;
@@ -71,7 +75,10 @@ export class Api extends Construct {
     this.defaultLambdaEndpointConstructor =
       defaultLambdaEndpointConstruct ?? this.defaultLambdaEndpointConstructor;
 
-    this.apiLambdaMeta = getApiLambdaMeta(pattern);
+    this.apiLambdaMeta = getApiLambdaMeta(pattern, {
+      lambdaNameTransformer,
+      handlerExportName,
+    });
     this.api = this.createApi();
     this.authorizers = this.createAuthorizers();
 
@@ -227,7 +234,10 @@ export class Api extends Construct {
 
           return {
             ..._acc,
-            [createHashedKey(meta.endpoint.method, meta.endpoint.path, key)]: JSON.stringify(value),
+            [createHashedKey(meta.endpoint.method, meta.endpoint.path, key)]: Buffer.from(
+              JSON.stringify(value),
+              'utf8',
+            ).toString('base64'),
           };
         }, {});
 
@@ -241,19 +251,19 @@ export class Api extends Construct {
 
 const defaultCustomLambdaEndpointConstructorMatcher = (lambdaPath: string) => {
   const { name, dir } = parse(lambdaPath);
-  const [withoutSuffix] = name.split('.');
-  return join(dir, `${withoutSuffix}.construct.ts`);
+  const [withoutSuffix] = name.split('Lambda');
+  return join(dir, `${withoutSuffix}Construct.ts`);
 };
 
 const defaultCustomLambdaEndpointCallbackMatcher = (lambdaPath: string) => {
   const { name, dir } = parse(lambdaPath);
-  const [withoutSuffix] = name.split('.');
-  return join(dir, `${withoutSuffix}.callback.ts`);
+  const [withoutSuffix] = name.split('Lambda');
+  return join(dir, `${withoutSuffix}Callback.ts`);
 };
 
 const findNextSharedCallback = (
   lambdaPath: string,
-  sharedCallbackFilename = 'shared.callback.ts',
+  sharedCallbackFilename = '[shared]Callback.ts',
 ) => {
   const { dir } = parse(lambdaPath);
   const MAX_LEVEL = 3;
