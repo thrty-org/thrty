@@ -1,5 +1,5 @@
 import { App, Stack } from 'aws-cdk-lib';
-import { Template, Match, Capture } from 'aws-cdk-lib/assertions';
+import { Capture, Template } from 'aws-cdk-lib/assertions';
 import { join } from 'path';
 import { Api } from '@thrty/api-cdk';
 import { createHash } from 'crypto';
@@ -25,7 +25,6 @@ beforeAll(() => {
   });
 
   template = Template.fromStack(stack);
-  console.log(JSON.stringify(template.toJSON(), null, 2));
 });
 
 it('should create "RestApi"', () => {

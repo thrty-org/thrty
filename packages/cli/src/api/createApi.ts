@@ -3,7 +3,6 @@ import { GetLambdaMetaOptions } from '@thrty/meta';
 import { HttpClientTemplateFactory } from './httpClients/HttpClientTemplateFactory';
 import { ModelFactory, modelSourceKeys } from './models/ModelFactory';
 import { getApiLambdaMeta } from '@thrty/api-cdk';
-import * as prettier from 'prettier';
 
 const lowerFirst = (str: string) => str.charAt(0).toLowerCase() + str.slice(1);
 
@@ -11,7 +10,7 @@ export type CreateApiClientOptions = {
   outPath: string;
   exportName: string;
   httpClient: 'axios' | 'fetch';
-  models: 'zod' | 'valibot';
+  models: 'zod';
   pattern: string;
   modelAliases?: {
     [K in (typeof modelSourceKeys)[number]]: string;
@@ -20,9 +19,9 @@ export type CreateApiClientOptions = {
 
 export const createApiClient = async (options: CreateApiClientOptions) => {
   const httpClient: HttpClientTemplateFactory = (
-    await import(`./httpClients/${options.httpClient}`)
+    await import(`./httpClients/${options.httpClient}.ts`)
   ).default;
-  const modelFactory: ModelFactory = (await import(`./models/${options.models}`)).default;
+  const modelFactory: ModelFactory = (await import(`./models/${options.models}.ts`)).default;
   const { pattern, exportName, outPath, ...rest } = options;
   const metaList = getApiLambdaMeta(pattern, rest);
   const modelsMap = modelFactory(metaList, options);
@@ -75,5 +74,5 @@ ${metaList
   .join('\n')}
 });
   `.replaceAll('\n\n', '\n');
-  writeFileSync(outPath, await prettier.format(apiFactory, { semi: false, parser: 'typescript' }));
+  writeFileSync(outPath, apiFactory.replace(/^\s*\n/gm, ''));
 };

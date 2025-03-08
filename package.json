@@ -15,7 +15,7 @@
   },
   "workspaces": [
     "packages/*",
-    "integration-tests"
+    "test"
   ],
   "devDependencies": {
     "@types/jest": "^29.5.14",

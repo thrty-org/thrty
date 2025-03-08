@@ -5,16 +5,23 @@ import { writeFileSync, mkdirSync, existsSync, rmSync } from 'fs';
 export type CreateApiPackageOptions = Omit<CreateApiClientOptions, 'outPath'> & {
   packageName: string;
   outDir: string;
+  /**
+   * If true omits defining dependencies for package.json.
+   * So that root package.json dependencies are used.
+   * @default false
+   */
+  dependenciesHoisted?: boolean;
 };
 export const createApiPackage = async ({
   packageName,
   outDir,
+  dependenciesHoisted = false,
   ...options
 }: CreateApiPackageOptions) => {
   if (existsSync(outDir)) {
     rmSync(outDir, { recursive: true });
   }
-  mkdirSync(outDir);
+  mkdirSync(outDir, { recursive: true });
   mkdirSync(join(outDir, 'src'));
   writeFileSync(
     `${outDir}/package.json`,
@@ -39,9 +46,14 @@ export const createApiPackage = async ({
         scripts: {
           build: 'tsup',
         },
-        dependencies: {
-          tsup: '^8.4.0',
-        },
+        ...(dependenciesHoisted
+          ? {}
+          : {
+              dependencies: {
+                ...(options.httpClient === 'axios' ? { axios: '^1.8.2' } : {}),
+                tsup: '^8.4.0',
+              },
+            }),
         tsup: {
           clean: true,
           dts: true,
