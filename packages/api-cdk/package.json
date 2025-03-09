@@ -27,11 +27,9 @@
     "build": "tsup",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies": {
-    "@thrty/api": "^1.0.0",
-    "@thrty/meta": "^1.0.0"
-  },
   "peerDependencies": {
+    "@thrty/api": "^1.0.0",
+    "@thrty/meta": "^1.0.0",
     "aws-cdk-lib": "^2.100.0",
     "constructs": "^10.0.0",
     "thirty": "^2.0.0-beta.3"
