@@ -1,6 +1,6 @@
 {
   "name": "@thrty/cli",
-  "version": "1.0.0",
+  "version": "3.0.0-alpha.0",
   "author": "Robin Baum",
   "license": "ISC",
   "description": "CLI for thrty",
@@ -31,6 +31,6 @@
     "zod-to-ts": "^1.2.0"
   },
   "peerDependencies": {
-    "@thrty/api-cdk": "1.0.0"
+    "@thrty/api-cdk": "3.0.0-alpha.0"
   }
 }
