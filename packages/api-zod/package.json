@@ -1,6 +1,6 @@
 {
   "name": "@thrty/api-zod",
-  "version": "3.0.0-alpha.0",
+  "version": "3.0.0-alpha.1",
   "author": "Robin Baum",
   "license": "ISC",
   "description": "Middleware for validation and metadata describing request body, response body and query parameters",
