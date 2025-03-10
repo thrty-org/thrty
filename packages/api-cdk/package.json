@@ -30,8 +30,8 @@
   "peerDependencies": {
     "@thrty/api": "*",
     "@thrty/meta": "*",
-    "aws-cdk-lib": "^2.100.0",
-    "constructs": "^10.0.0",
+    "aws-cdk-lib": "*",
+    "constructs": "*",
     "thirty": "^2.0.0-beta.3"
   }
 }
