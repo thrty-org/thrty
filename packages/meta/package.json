@@ -23,6 +23,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "glob": "^11.0.1"
+    "glob": "^11.0.1",
+    "tsx": "^4.19.3"
   }
 }

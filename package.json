@@ -1,6 +1,6 @@
 {
   "name": "thrty",
-  "version": "1.0.0",
+  "version": "3.0.0-alpha.0",
   "author": "Robin Baum",
   "license": "ISC",
   "description": "A middleware engine for AWS Lambda, that makes Lambda Functions type-safe, easy to develop and test.",
@@ -29,6 +29,7 @@
     "thirty": "^2.0.0-beta.3",
     "ts-jest": "^29.2.6",
     "tsup": "^8.4.0",
+    "tsx": "^4.19.3",
     "typescript": "^5.8.2",
     "zod-to-ts": "^1.2.0"
   },

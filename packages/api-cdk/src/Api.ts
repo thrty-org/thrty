@@ -64,6 +64,7 @@ export class Api extends Construct {
       defaultLambdaEndpointConstruct,
       lambdaNameTransformer,
       handlerExportName,
+      useChildProcess = true,
       ...restApiProps
     } = props;
     this.restApiProps = restApiProps;
@@ -78,6 +79,7 @@ export class Api extends Construct {
     this.apiLambdaMeta = getApiLambdaMeta(pattern, {
       lambdaNameTransformer,
       handlerExportName,
+      useChildProcess,
     });
     this.api = this.createApi();
     this.authorizers = this.createAuthorizers();

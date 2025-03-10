@@ -5,12 +5,12 @@
     "test": "jest"
   },
   "devDependencies": {
-    "@thrty/api": "^1.0.0",
-    "@thrty/api-cdk": "^1.0.0",
-    "@thrty/api-zod": "^1.0.0",
-    "@thrty/cli": "^1.0.0",
-    "@thrty/core": "^1.0.0",
-    "@thrty/meta": "^1.0.0",
+    "@thrty/api": "*",
+    "@thrty/api-cdk": "*",
+    "@thrty/api-zod": "*",
+    "@thrty/cli": "*",
+    "@thrty/core": "*",
+    "@thrty/meta": "*",
     "axios": "^1.8.2"
   },
   "jest": {
