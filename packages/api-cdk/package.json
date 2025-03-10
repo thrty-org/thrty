@@ -28,8 +28,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "peerDependencies": {
-    "@thrty/api": "^3.0.0-alpha.0",
-    "@thrty/meta": "3.0.0-alpha.0",
+    "@thrty/api": "*",
+    "@thrty/meta": "*",
     "aws-cdk-lib": "^2.100.0",
     "constructs": "^10.0.0",
     "thirty": "^2.0.0-beta.3"
