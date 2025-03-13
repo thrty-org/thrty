@@ -1,6 +1,6 @@
 {
   "name": "@thrty/cli",
-  "version": "3.0.0-alpha.4",
+  "version": "3.0.0-alpha.5",
   "author": "Robin Baum",
   "license": "ISC",
   "description": "CLI for thrty",

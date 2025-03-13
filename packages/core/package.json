@@ -1,6 +1,6 @@
 {
   "name": "@thrty/core",
-  "version": "3.0.0-alpha.4",
+  "version": "3.0.0-alpha.5",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
