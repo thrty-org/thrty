@@ -29,5 +29,13 @@
   },
   "peerDependencies": {
     "thirty": "^2.0.0-beta.3"
+  },
+  "devDependencies": {
+    "@thrty/core": "*"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.(ts)$": "ts-jest"
+    }
   }
 }
