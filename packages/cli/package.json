@@ -31,6 +31,6 @@
     "zod-to-ts": "^1.2.0"
   },
   "peerDependencies": {
-    "@thrty/api-cdk": "*"
+    "@thrty/api-cdk": "^3.0.0-alpha.4"
   }
 }
