@@ -1,6 +1,6 @@
 {
   "name": "@thrty/api-cdk",
-  "version": "3.0.0-alpha.4",
+  "version": "3.0.0-alpha.5",
   "author": "Robin Baum",
   "license": "ISC",
   "description": "AWS CDK construct to create an AWS API Gateway from lambdas using @thrty/api",
@@ -28,10 +28,10 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "peerDependencies": {
-    "@thrty/api": "*",
-    "@thrty/meta": "*",
-    "aws-cdk-lib": "*",
-    "constructs": "*",
+    "@thrty/api": "^3.0.0-alpha.4",
+    "@thrty/meta": "^3.0.0-alpha.4",
+    "aws-cdk-lib": "^2.180.0",
+    "constructs": "^10.3.0",
     "thirty": "^2.0.0-beta.3"
   }
 }

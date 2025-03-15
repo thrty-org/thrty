@@ -1,6 +1,14 @@
 {
   "name": "@thrty/meta",
-  "version": "3.0.0-alpha.4",
+  "version": "3.0.0-alpha.5",
+  "author": "Robin Baum",
+  "license": "ISC",
+  "description": "Utilities for reading metadata from composed lambdas",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thrty-org/thrty.git",
+    "directory": "packages/meta"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -19,9 +27,6 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsup"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "glob": "^11.0.1",
     "tsx": "^4.19.3"

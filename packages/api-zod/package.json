@@ -1,6 +1,6 @@
 {
   "name": "@thrty/api-zod",
-  "version": "3.0.0-alpha.4",
+  "version": "3.0.0-alpha.5",
   "author": "Robin Baum",
   "license": "ISC",
   "description": "Middleware for validation and metadata describing request body, response body and query parameters",
@@ -28,7 +28,7 @@
     "build": "tsup"
   },
   "peerDependencies": {
-    "aws-lambda": "*",
+    "aws-lambda": "^1.0.0",
     "thirty": "^2.0.0-beta.3",
     "zod": "^3.24.2"
   }

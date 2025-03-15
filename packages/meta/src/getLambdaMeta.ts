@@ -57,6 +57,11 @@ export const getLambdaMeta = (
     throw new Error('Could not retrieve meta data due to unknown error');
   }
 
+  // TODO move enhancement to separate function
+  //      otherwise lambdaNameTransformer will
+  //      be called in the child process as well
+  //      which leads to errors, since functions
+  //      cannot be serialized via JSON.stringify
   return metaList.map((meta: any) => ({
     ...meta,
     name: lambdaNameTransformer(meta.path),
