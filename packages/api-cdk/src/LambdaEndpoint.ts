@@ -1,7 +1,7 @@
 import { Construct } from 'constructs';
 import { ILambdaEndpoint } from './ILambdaEndpoint';
 import { IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { ApiLambdaMeta } from './getApiLambdaMeta';
+import { ApiLambdaMeta } from './ApiLambdaMeta';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { NodejsFunctionProps } from 'aws-cdk-lib/aws-lambda-nodejs/lib/function';
 import { LambdaIntegrationOptions, MethodOptions } from 'aws-cdk-lib/aws-apigateway';

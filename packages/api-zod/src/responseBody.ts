@@ -2,10 +2,10 @@ import { Middleware } from 'thirty/core';
 import { APIGatewayProxyResult } from 'thirty/types';
 import { InternalServerError } from 'thirty/errors';
 import { TypeOf, ZodType } from 'zod';
+import { ResponseBody, ResponseBodyMeta } from '@thrty/api';
 
-export type OutputResult<TResult, TBody extends ZodType> = Omit<TResult, 'body'> & {
-  body: TypeOf<TBody>;
-};
+export type OutputResult<TResult, TBody extends ZodType> = Omit<TResult, 'body'> &
+  ResponseBody<TypeOf<TBody>>;
 export interface ResponseBodyOptions {
   /**
    * If true, the body will be validated against the schema
@@ -36,6 +36,6 @@ export const responseBody = <TEvent, R extends APIGatewayProxyResult, const TBod
     {
       meta: {
         responseBody: _body,
-      },
-    } as any,
+      } satisfies ResponseBodyMeta,
+    },
   );

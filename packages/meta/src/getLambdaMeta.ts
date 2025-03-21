@@ -16,7 +16,7 @@ const defaults = {
   },
 };
 
-const OUTPUT_DELEMITER = '__delemiter__';
+const OUTPUT_DELEMITER = '__thrty_delemiter__';
 const CHILD_PROCESS_FLAG = '--meta-child-process';
 
 export const getLambdaMeta = (
@@ -36,7 +36,6 @@ export const getLambdaMeta = (
         pattern,
         ...optionsForChildProcess,
       }),
-      stdio: ['pipe', 'pipe', 'pipe', 'pipe'],
       encoding: 'utf-8',
     });
     if (child.error) {

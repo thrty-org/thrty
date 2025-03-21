@@ -16,10 +16,10 @@ import { existsSync } from 'fs';
 import { Stack } from 'aws-cdk-lib';
 import { PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { LambdaEndpoint, LambdaEndpointProps } from './LambdaEndpoint';
-import { ApiLambdaMeta, getApiLambdaMeta } from './getApiLambdaMeta';
 import { createHashedKey } from './shared/stageVariables';
-import { STAGE_VARIABLE_PREFIX } from '@thrty/api';
-import { GetLambdaMetaOptions } from '@thrty/meta';
+import { STAGE_VARIABLE_PREFIX, isApiLambdaMeta } from '@thrty/api';
+import { getLambdaMeta, GetLambdaMetaOptions, LambdaMeta } from '@thrty/meta';
+import { ApiLambdaMeta } from './ApiLambdaMeta';
 
 export type Authorizer = Omit<CfnAuthorizerProps, 'restApiId' | 'name' | 'authorizerUri'> & {
   lambdaArn: string;
@@ -76,11 +76,11 @@ export class Api extends Construct {
     this.defaultLambdaEndpointConstructor =
       defaultLambdaEndpointConstruct ?? this.defaultLambdaEndpointConstructor;
 
-    this.apiLambdaMeta = getApiLambdaMeta(pattern, {
+    this.apiLambdaMeta = getLambdaMeta(pattern, {
       lambdaNameTransformer,
       handlerExportName,
       useChildProcess,
-    });
+    }).filter(isApiLambdaMeta);
     this.api = this.createApi();
     this.authorizers = this.createAuthorizers();
 

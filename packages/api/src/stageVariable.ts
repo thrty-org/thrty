@@ -1,6 +1,9 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { Middleware } from 'thirty/core';
 
+export type StageVariableMeta = {
+  [K in `stageVariable:${string}`]: string;
+};
 export const STAGE_VARIABLE_PREFIX = 'stageVariable:';
 export const stageVariable = <TEvent extends APIGatewayProxyEvent, R>(
   key: string,
@@ -13,6 +16,6 @@ export const stageVariable = <TEvent extends APIGatewayProxyEvent, R>(
     {
       meta: {
         [`${STAGE_VARIABLE_PREFIX}${key}`]: value,
-      },
+      } satisfies StageVariableMeta,
     },
   );

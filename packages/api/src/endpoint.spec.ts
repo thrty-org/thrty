@@ -2,7 +2,7 @@ import { compose } from '@thrty/core';
 import { types } from 'thirty/core';
 import { APIGatewayProxyResult } from 'thirty/types';
 import { APIGatewayProxyEvent } from 'aws-lambda';
-import { get, post, patch, trace, put, $delete, head } from './endpoint';
+import { get, post, patch, trace, put, $delete, head, options } from './endpoint';
 
 describe.each([
   ['get', get],
@@ -12,6 +12,7 @@ describe.each([
   ['put', put],
   ['delete', $delete],
   ['head', head],
+  ['options', options],
 ] as const)('%s', (method, request: typeof get) => {
   const handler = compose(
     types<APIGatewayProxyEvent, Promise<APIGatewayProxyResult>>(),

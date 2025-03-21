@@ -1,5 +1,5 @@
 import { Middleware } from 'thirty/core';
-import { HttpMethod } from './shared/httpMethods';
+import { HttpMethod } from './httpMethods';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 
 export const createEndpointMiddleware =
