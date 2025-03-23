@@ -10,8 +10,7 @@
     "@thrty/api-zod": "*",
     "@thrty/cli": "*",
     "@thrty/core": "*",
-    "@thrty/meta": "*",
-    "axios": "^1.8.2"
+    "@thrty/meta": "*"
   },
   "jest": {
     "transform": {

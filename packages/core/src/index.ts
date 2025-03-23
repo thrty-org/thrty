@@ -1,3 +1,5 @@
 export * from './compose';
-export * from './Next';
 export * from './Middleware';
+export * from './Next';
+export * from './types';
+export * from './typesOf';

@@ -1,8 +1,8 @@
-import { Middleware } from 'thirty/core';
-import { APIGatewayProxyResult } from 'thirty/types';
-import { InternalServerError } from 'thirty/errors';
-import { TypeOf, ZodType } from 'zod';
+import { APIGatewayProxyResult } from 'aws-lambda';
+import { Middleware, types } from '@thrty/core';
 import { ResponseBody, ResponseBodyMeta } from '@thrty/api';
+import { TypeOf, ZodType } from 'zod';
+import { InternalServerError } from 'thirty/errors';
 
 export type OutputResult<TResult, TBody extends ZodType> = Omit<TResult, 'body'> &
   ResponseBody<TypeOf<TBody>>;

@@ -16,7 +16,7 @@ import { existsSync } from 'fs';
 import { Stack } from 'aws-cdk-lib';
 import { PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { LambdaEndpoint, LambdaEndpointProps } from './LambdaEndpoint';
-import { createHashedKey } from './shared/stageVariables';
+import { createHashedKey } from './stageVariables';
 import { STAGE_VARIABLE_PREFIX, isApiLambdaMeta } from '@thrty/api';
 import { getLambdaMeta, GetLambdaMetaOptions, LambdaMeta } from '@thrty/meta';
 import { ApiLambdaMeta } from './ApiLambdaMeta';

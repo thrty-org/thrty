@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
-import { Middleware } from 'thirty/core';
+import { Middleware } from '@thrty/core';
 
 export interface AuthorizerMeta {
   authorizerName?: string;

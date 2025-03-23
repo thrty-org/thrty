@@ -1,4 +1,4 @@
-import { Middleware } from 'thirty/core';
+import { Middleware } from '@thrty/core';
 import { HttpMethod } from './httpMethods';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 

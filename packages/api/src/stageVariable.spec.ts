@@ -1,8 +1,5 @@
-import { compose } from '@thrty/core';
-import { types } from 'thirty/core';
-import { APIGatewayProxyEvent } from 'aws-lambda';
-import { APIGatewayProxyResult } from 'thirty/types';
-import { authorizer } from './authorizer';
+import { compose, types } from '@thrty/core';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { stageVariable } from './stageVariable';
 
 const handler = compose(

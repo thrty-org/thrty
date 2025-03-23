@@ -1,7 +1,5 @@
-import { compose } from '@thrty/core';
-import { types } from 'thirty/core';
-import { APIGatewayProxyResult } from 'thirty/types';
-import { APIGatewayProxyEvent } from 'aws-lambda';
+import { compose, types } from '@thrty/core';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { get, post, patch, trace, put, $delete, head, options } from './endpoint';
 
 describe.each([

@@ -1,8 +1,7 @@
-import { Middleware } from 'thirty/core';
-import { BadRequestError } from 'thirty/errors';
+import { RequestBodyMeta, RequestBody } from '@thrty/api';
+import { Middleware } from '@thrty/core';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { ZodType, TypeOf } from 'zod';
-import { RequestBodyMeta, RequestBody } from '@thrty/api';
 
 export const requestBody = <TEvent extends APIGatewayProxyEvent, R, const TBody extends ZodType>(
   body: TBody,
@@ -19,7 +18,7 @@ export const requestBody = <TEvent extends APIGatewayProxyEvent, R, const TBody 
           );
         }
         // TODO Needs improvement: provide detailed error messages as string and as object or array of objects
-        throw new BadRequestError(res.error.errors.map((e) => e.message).join(', '));
+        throw new BadRequestError(res.error.issues.map((e) => e.message).join(', '));
       },
     {
       meta: {
@@ -29,3 +28,5 @@ export const requestBody = <TEvent extends APIGatewayProxyEvent, R, const TBody 
   );
 
 type OutputEvent<TInputEvent, TBody extends ZodType> = TInputEvent & RequestBody<TypeOf<TBody>>;
+
+export class BadRequestError extends Error {}

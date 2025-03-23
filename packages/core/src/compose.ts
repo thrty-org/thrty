@@ -47,7 +47,7 @@ export function compose<
   q: Middleware<E12, E13, R12, R13>,
   r: Middleware<E13, E14, R13, R14>,
   s: Middleware<E14, E15, R14, R15>,
-): Middleware<E1, E15, R1, R15, { actual: Next<E15, R15> }>;
+): Middleware<E1, E15, R1, R15, { actual: Next<E15, R15>; meta?: unknown }>;
 export function compose<
   E1,
   E2,
@@ -91,7 +91,7 @@ export function compose<
   p: Middleware<E11, E12, R11, R12>,
   q: Middleware<E12, E13, R12, R13>,
   r: Middleware<E13, E14, R13, R14>,
-): Middleware<E1, E14, R1, R14, { actual: Next<E14, R14> }>;
+): Middleware<E1, E14, R1, R14, { actual: Next<E14, R14>; meta?: unknown }>;
 export function compose<
   E1,
   E2,
@@ -132,7 +132,7 @@ export function compose<
   o: Middleware<E10, E11, R10, R11>,
   p: Middleware<E11, E12, R11, R12>,
   q: Middleware<E12, E13, R12, R13>,
-): Middleware<E1, E13, R1, R13, { actual: Next<E13, R13> }>;
+): Middleware<E1, E13, R1, R13, { actual: Next<E13, R13>; meta?: unknown }>;
 export function compose<
   E1,
   E2,
@@ -170,7 +170,7 @@ export function compose<
   n: Middleware<E9, E10, R9, R10>,
   o: Middleware<E10, E11, R10, R11>,
   p: Middleware<E11, E12, R11, R12>,
-): Middleware<E1, E12, R1, R12, { actual: Next<E12, R12> }>;
+): Middleware<E1, E12, R1, R12, { actual: Next<E12, R12>; meta?: unknown }>;
 export function compose<
   E1,
   E2,
@@ -205,7 +205,7 @@ export function compose<
   m: Middleware<E8, E9, R8, R9>,
   n: Middleware<E9, E10, R9, R10>,
   o: Middleware<E10, E11, R10, R11>,
-): Middleware<E1, E11, R1, R11, { actual: Next<E11, R11> }>;
+): Middleware<E1, E11, R1, R11, { actual: Next<E11, R11>; meta?: unknown }>;
 export function compose<
   E1,
   E2,
@@ -237,7 +237,7 @@ export function compose<
   l: Middleware<E7, E8, R7, R8>,
   m: Middleware<E8, E9, R8, R9>,
   n: Middleware<E9, E10, R9, R10>,
-): Middleware<E1, E10, R1, R10, { actual: Next<E10, R10> }>;
+): Middleware<E1, E10, R1, R10, { actual: Next<E10, R10>; meta?: unknown }>;
 export function compose<E1, E2, E3, E4, E5, E6, E7, E8, E9, R1, R2, R3, R4, R5, R6, R7, R8, R9>(
   f: Middleware<E1, E2, R1, R2>,
   g: Middleware<E2, E3, R2, R3>,
@@ -247,7 +247,7 @@ export function compose<E1, E2, E3, E4, E5, E6, E7, E8, E9, R1, R2, R3, R4, R5, 
   k: Middleware<E6, E7, R6, R7>,
   l: Middleware<E7, E8, R7, R8>,
   m: Middleware<E8, E9, R8, R9>,
-): Middleware<E1, E9, R1, R9, { actual: Next<E9, R9> }>;
+): Middleware<E1, E9, R1, R9, { actual: Next<E9, R9>; meta?: unknown }>;
 export function compose<E1, E2, E3, E4, E5, E6, E7, E8, R1, R2, R3, R4, R5, R6, R7, R8>(
   f: Middleware<E1, E2, R1, R2>,
   g: Middleware<E2, E3, R2, R3>,
@@ -256,7 +256,7 @@ export function compose<E1, E2, E3, E4, E5, E6, E7, E8, R1, R2, R3, R4, R5, R6, 
   j: Middleware<E5, E6, R5, R6>,
   k: Middleware<E6, E7, R6, R7>,
   l: Middleware<E7, E8, R7, R8>,
-): Middleware<E1, E8, R1, R8, { actual: Next<E8, R8> }>;
+): Middleware<E1, E8, R1, R8, { actual: Next<E8, R8>; meta?: unknown }>;
 export function compose<E1, E2, E3, E4, E5, E6, E7, R1, R2, R3, R4, R5, R6, R7>(
   f: Middleware<E1, E2, R1, R2>,
   g: Middleware<E2, E3, R2, R3>,
