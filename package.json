@@ -11,7 +11,8 @@
   "main": "index.js",
   "scripts": {
     "test": "lerna run test",
-    "build": "lerna run build"
+    "build": "lerna run build",
+    "prettier:write": "prettier --write \"packages/**/*.{ts,json}\""
   },
   "workspaces": [
     "packages/*",

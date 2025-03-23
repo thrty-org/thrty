@@ -1,13 +1,10 @@
-import { types } from 'thirty/core';
-import { APIGatewayProxyEvent } from 'aws-lambda';
-import { APIGatewayProxyResult } from 'thirty/types';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { compose, types } from '@thrty/core';
+import { authorizer, patch } from '@thrty/api';
+import { requestBody, responseBody } from '@thrty/api-zod';
 import { inject } from 'thirty/inject';
 import { z } from 'zod';
-import { compose } from '@thrty/core';
-import { patch, authorizer } from '@thrty/api';
-import { responseBody, requestBody } from '@thrty/api-zod';
 import { todoRepositoryProviders } from './todoRepositoryProviders';
-import { NotFoundError } from 'thirty/errors';
 import { scopes } from './scopes';
 
 const PatchTodoResponseModel = z.object({
@@ -38,7 +35,7 @@ export const handler = compose(
 
   const todo = todoRepository.findTodoById(event.routeParams.todoId);
   if (!todo) {
-    throw new NotFoundError(`Todo with id ${event.routeParams.todoId} not found`);
+    throw new Error(`Todo with id ${event.routeParams.todoId} not found`);
   }
 
   return {

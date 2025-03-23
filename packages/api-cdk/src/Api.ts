@@ -17,8 +17,8 @@ import { Stack } from 'aws-cdk-lib';
 import { PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { LambdaEndpoint, LambdaEndpointProps } from './LambdaEndpoint';
 import { createHashedKey } from './stageVariables';
-import { STAGE_VARIABLE_PREFIX, isApiLambdaMeta } from '@thrty/api';
-import { getLambdaMeta, GetLambdaMetaOptions, LambdaMeta } from '@thrty/meta';
+import { isApiLambdaMeta, STAGE_VARIABLE_PREFIX } from '@thrty/api';
+import { getLambdaMeta, GetLambdaMetaOptions } from '@thrty/meta';
 import { ApiLambdaMeta } from './ApiLambdaMeta';
 
 export type Authorizer = Omit<CfnAuthorizerProps, 'restApiId' | 'name' | 'authorizerUri'> & {

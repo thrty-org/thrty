@@ -1,9 +1,19 @@
-import { EndpointImplementationOptions, HttpClientTemplateFactory } from './HttpClientTemplateFactory';
+import {
+  EndpointImplementationOptions,
+  HttpClientTemplateFactory,
+} from './HttpClientTemplateFactory';
 
 export const HTTP_CLIENT = 'httpClient';
 
 export default {
-  createEndpointImplementation({ path, method, responseBodyType, requestBodyType, requestBody, options }: EndpointImplementationOptions) {
+  createEndpointImplementation({
+    path,
+    method,
+    responseBodyType,
+    requestBodyType,
+    requestBody,
+    options,
+  }: EndpointImplementationOptions) {
     return {
       returnType: `Promise<AxiosResponse<${responseBodyType ?? 'unknown'}>>`,
       endpointOptionsType: 'AxiosRequestConfig<any>',

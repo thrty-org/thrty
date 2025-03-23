@@ -1,4 +1,7 @@
-import { HttpClientTemplateFactory, EndpointImplementationOptions } from './HttpClientTemplateFactory';
+import {
+  HttpClientTemplateFactory,
+  EndpointImplementationOptions,
+} from './HttpClientTemplateFactory';
 
 export const BASE_URL = 'baseUrl';
 export const REQUEST_INTERCEPTOR = 'requestInterceptor';
@@ -7,7 +10,14 @@ export const RESPONSE_TYPE = 'FetchResponse';
 export const REQUEST_TYPE = 'FetchRequest';
 
 export default {
-  createEndpointImplementation({ path, method, responseBodyType, requestBody, requestBodyType, options }: EndpointImplementationOptions) {
+  createEndpointImplementation({
+    path,
+    method,
+    responseBodyType,
+    requestBody,
+    requestBodyType,
+    options,
+  }: EndpointImplementationOptions) {
     return {
       returnType: `Promise<${RESPONSE_TYPE}<${responseBodyType ?? 'unknown'}>>`,
       endpointOptionsType: 'Request',

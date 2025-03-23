@@ -1,9 +1,7 @@
-import { types } from 'thirty/core';
-import { APIGatewayProxyEvent } from 'aws-lambda';
-import { APIGatewayProxyResult } from 'thirty/types';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { inject } from 'thirty/inject';
 import { z } from 'zod';
-import { compose } from '@thrty/core';
+import { compose, types } from '@thrty/core';
 import { post, authorizer } from '@thrty/api';
 import { requestBody, responseBody } from '@thrty/api-zod';
 import { todoRepositoryProviders } from './todoRepositoryProviders';
