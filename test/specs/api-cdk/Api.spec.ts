@@ -11,7 +11,7 @@ beforeAll(() => {
   const stack = new Stack(new App(), 'Test');
   new Api(stack, 'TodoApi', {
     restApiName: 'Todos',
-    pattern: join(__dirname, '__fixtures__', '*Lambda.ts'),
+    pattern: join(__dirname, '..', '__fixtures__', '*Lambda.ts'),
     basePathMapping: {
       path: 'todos',
       domainNames: ['api.thrty.com'],

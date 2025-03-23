@@ -1,13 +1,13 @@
-import { ApiLambdaMeta } from '../../../api/src/cdk/getApiLambdaMeta';
 import { printNode, zodToTs } from 'zod-to-ts';
 import { Model, ModelFactory, ModelsMap, modelSourceKeys } from './ModelFactory';
 import { CreateApiClientOptions } from '../createApi';
+import { ApiLambdaMeta } from '@thrty/api-cdk';
 
 export default ((lambdaMetaList: ApiLambdaMeta[], options: CreateApiClientOptions): ModelsMap => {
   const modelMap = new Map<object, Model>();
   lambdaMetaList.forEach((lambdaMeta) => {
     modelSourceKeys.forEach((modelSourceKey) => {
-      const zodType = lambdaMeta[modelSourceKey];
+      const zodType = lambdaMeta[modelSourceKey] as any;
       if (zodType) {
         const tsType = printNode(zodToTs(zodType).node);
         const alias = options.modelAliases?.[modelSourceKey];

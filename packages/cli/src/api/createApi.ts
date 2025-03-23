@@ -1,8 +1,8 @@
 import { writeFileSync } from 'fs';
-import { GetLambdaMetaOptions } from '@thrty/meta';
+import { GetLambdaMetaOptions, getLambdaMeta } from '@thrty/meta';
 import { HttpClientTemplateFactory } from './httpClients/HttpClientTemplateFactory';
 import { ModelFactory, modelSourceKeys } from './models/ModelFactory';
-import { getApiLambdaMeta } from '@thrty/api-cdk';
+import { isApiLambdaMeta } from '@thrty/api';
 
 const lowerFirst = (str: string) => str.charAt(0).toLowerCase() + str.slice(1);
 
@@ -23,7 +23,7 @@ export const createApiClient = async (options: CreateApiClientOptions) => {
   ).default;
   const modelFactory: ModelFactory = (await import(`./models/${options.models}.ts`)).default;
   const { pattern, exportName, outPath, ...rest } = options;
-  const metaList = getApiLambdaMeta(pattern, rest);
+  const metaList = getLambdaMeta(pattern, rest).filter(isApiLambdaMeta);
   const modelsMap = modelFactory(metaList, options);
   const apiFactory = `${httpClient.createGlobals()}
 ${[...modelsMap.entries()]

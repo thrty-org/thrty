@@ -23,7 +23,7 @@ const optionsDefaults = {
  */
 export const requestBody = <TEvent extends APIGatewayProxyEvent, R, const TBody extends ZodType>(
   body: TBody,
-  options: RequestBodyOptions,
+  options?: RequestBodyOptions,
 ): Middleware<TEvent, OutputEvent<TEvent, TBody>, R, R> => {
   const { badRequestErrorFactory } = { ...optionsDefaults, ...options };
   return Object.assign(
