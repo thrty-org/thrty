@@ -11,39 +11,27 @@ const exportName = 'todoApiFactory';
 beforeAll(async () => {
   if (!existsSync(distDir)) mkdirSync(distDir);
 
-  try {
-    await createApiPackage({
-      pattern: join(__dirname, '..', '__fixtures__', '*Lambda.ts'),
-      outDir,
-      packageName: 'test-api-generated',
-      httpClient: 'axios',
-      models: 'zod',
-      exportName: 'todoApiFactory',
-    });
-  } catch (e) {
-    console.error(e);
-  }
+  await createApiPackage({
+    pattern: join(__dirname, '..', '__fixtures__', '*Lambda.ts'),
+    outDir,
+    packageName: 'test-api-generated',
+    httpClient: 'axios',
+    models: 'zod',
+    exportName: 'todoApiFactory',
+  });
 });
 
 it('should create package with source files and folders', async () => {
-  try {
-    const packagePathParts = await readdir(outDir);
-    expect(packagePathParts).toEqual(['package.json', 'src']);
+  const packagePathParts = await readdir(outDir);
+  expect(packagePathParts).toEqual(['package.json', 'src']);
 
-    const srcPathParts = await readdir(join(outDir, 'src'));
-    expect(srcPathParts).toEqual(['index.ts']);
-  } catch (e) {
-    console.error(e);
-  }
+  const srcPathParts = await readdir(join(outDir, 'src'));
+  expect(srcPathParts).toEqual(['index.ts']);
 });
 
 it('should create api factory', async () => {
-  try {
-    const module = require(join(outDir, 'src', 'index.ts'));
-    const apiFactory = module[exportName];
+  const module = require(join(outDir, 'src', 'index.ts'));
+  const apiFactory = module[exportName];
 
-    expect(apiFactory).toBeDefined();
-  } catch (e) {
-    console.error(e);
-  }
+  expect(apiFactory).toBeDefined();
 });
