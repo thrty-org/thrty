@@ -10,7 +10,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "test": "lerna run test",
+    "test": "lerna run test --stream",
     "build": "lerna run build",
     "prettier:write": "prettier --write \"packages/**/*.{ts,json}\""
   },
