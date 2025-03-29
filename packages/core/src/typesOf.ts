@@ -1,4 +1,4 @@
-import { Middleware } from '../src_tmp/Middleware';
+import { Middleware } from './Middleware';
 
 export type Handler<TEvent = any, TResult = any> = (
   event: TEvent,

@@ -1,4 +1,4 @@
-import { Middleware } from '../src_tmp/Middleware';
+import { Middleware } from './Middleware';
 
 export const types =
   <TEvent, TReturnValue>(): Middleware<TEvent, TEvent, TReturnValue, TReturnValue> =>
