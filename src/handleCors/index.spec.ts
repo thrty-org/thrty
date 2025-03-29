@@ -1,4 +1,4 @@
-import { compose, types } from '../core';
+import { compose, types } from '@thrty/core/src';
 import { handleCors } from './index';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { sanitizeHeaders } from '../sanitizeHeaders';

@@ -1,5 +1,5 @@
 import { Writable } from 'stream';
-import { Middleware } from '../core';
+import { Middleware } from '@thrty/core/src';
 
 declare const awslambda: { streamifyResponse?: any } | undefined;
 

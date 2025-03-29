@@ -1,7 +1,7 @@
-import { compose, types } from '../core';
+import { compose, types } from '@thrty/core/src';
 import { SQSBatchResponse, SQSEvent, SQSRecord } from 'aws-lambda';
 import { forEachSqsRecord } from './index';
-import { of } from '../core/TypeRef';
+import { of } from '../../packages/core/src/TypeRef';
 import { mock } from '../types/mock';
 import { inject } from '../inject';
 

@@ -1,5 +1,5 @@
 import { APIGatewayRequestAuthorizerEventHeaders } from 'aws-lambda';
-import { Middleware } from '../core';
+import { Middleware } from '@thrty/core/src';
 
 export interface SanitizedHeadersRequiredEvent {
   headers: APIGatewayRequestAuthorizerEventHeaders | null;

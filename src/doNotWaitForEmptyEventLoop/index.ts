@@ -1,5 +1,5 @@
 import { Context } from 'aws-lambda';
-import { Middleware } from '../core';
+import { Middleware } from '@thrty/core/src';
 
 export const doNotWaitForEmptyEventLoop =
   <T, R>(): Middleware<T, T, R, R> =>

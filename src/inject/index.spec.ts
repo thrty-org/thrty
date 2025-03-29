@@ -1,4 +1,4 @@
-import { compose, eventType } from '../core';
+import { compose, eventType } from '@thrty/core/src';
 import { inject, Injector, LazyInject } from './index';
 
 let handler;

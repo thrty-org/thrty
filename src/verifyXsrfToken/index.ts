@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import Csrf from 'csrf';
 
-import { Middleware } from '../core';
+import { Middleware } from '@thrty/core/src';
 import { UnauthorizedError } from '../errors/UnauthorizedError';
 import { SanitizedHeadersEvent } from '../sanitizeHeaders';
 

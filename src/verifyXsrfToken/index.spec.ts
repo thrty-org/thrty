@@ -1,6 +1,6 @@
 import Csrf from 'csrf';
 import { XSRF_HEADER_NAME, verifyXsrfToken } from './index';
-import { compose, eventType } from '../core';
+import { compose, eventType } from '@thrty/core/src';
 import { UnauthorizedError } from '../errors/UnauthorizedError';
 
 let handler;

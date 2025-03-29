@@ -1,5 +1,5 @@
 import { decode, verify, VerifyOptions } from 'jsonwebtoken';
-import { Middleware } from '../core';
+import { Middleware } from '@thrty/core/src';
 import { UnauthorizedError } from '../errors/UnauthorizedError';
 import { SanitizedHeadersEvent } from '../sanitizeHeaders';
 

@@ -1,4 +1,4 @@
-import { Middleware } from '../core';
+import { Middleware } from '@thrty/core/src';
 import { BaseError } from '../errors';
 import { APIGatewayProxyResult } from '../types/APIGatewayProxyResult';
 
@@ -84,7 +84,7 @@ export const getLogError = (
   options: HttpErrorHandlerOptions,
 ) => {
   const logger = event.deps?.logger ?? options.logger;
-  return logger ? (...args: any[]) => logger?.error(...args) : options.logError ?? (() => null);
+  return logger ? (...args: any[]) => logger?.error(...args) : (options.logError ?? (() => null));
 };
 
 export const getSafeResponse = (options: ResolvedHttpErrorHandlerOptions, error?: any) => {

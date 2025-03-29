@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { serialize } from 'cookie';
 import { parseCookie } from './index';
-import { compose, types } from '../core';
+import { compose, types } from '@thrty/core/src';
 
 let handler;
 

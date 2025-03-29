@@ -1,5 +1,5 @@
-import { Middleware } from '../core';
-import { TypeRef } from '../core/TypeRef';
+import { Middleware } from '@thrty/core/src';
+import { TypeRef } from '../../packages/core/src/TypeRef';
 
 export interface ParseJsonRequiredEvent {
   body: string | null;

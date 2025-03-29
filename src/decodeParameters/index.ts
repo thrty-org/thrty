@@ -1,4 +1,4 @@
-import { Middleware } from '../core';
+import { Middleware } from '@thrty/core/src';
 
 interface Parameters {
   [name: string]: string | undefined;

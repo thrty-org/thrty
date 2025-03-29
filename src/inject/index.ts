@@ -1,4 +1,4 @@
-import { Middleware } from '../core';
+import { Middleware } from '@thrty/core/src';
 
 export type LazyInject<TDeps> = <TTargetKey extends keyof TDeps>(
   key: TTargetKey,

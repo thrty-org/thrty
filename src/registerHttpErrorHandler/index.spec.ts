@@ -1,4 +1,4 @@
-import { compose, types } from '../core';
+import { compose, types } from '@thrty/core/src';
 
 import { registerHttpErrorHandler } from './index';
 import { inject } from '../inject';

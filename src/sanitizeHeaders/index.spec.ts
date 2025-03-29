@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 
-import { eventType, compose } from '../core';
+import { eventType, compose } from '@thrty/core/src';
 import { sanitizeHeaders } from './index';
 
 let handler;

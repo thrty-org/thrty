@@ -1,4 +1,4 @@
-import { compose } from '../core';
+import { compose } from '@thrty/core/src';
 import { streamifyResponse } from './index';
 
 describe('given lambda is not invoked in RESPONSE_STREAM mode', () => {

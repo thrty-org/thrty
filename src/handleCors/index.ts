@@ -1,4 +1,4 @@
-import { Middleware } from '../core';
+import { Middleware } from '@thrty/core/src';
 import { SanitizedHeadersEvent } from '../sanitizeHeaders';
 import { APIGatewayProxyResult } from '../types/APIGatewayProxyResult';
 
@@ -114,7 +114,7 @@ const accessControlAllowCredentials = ({ credentials }: EvaluatedCorsOptions) =>
 const accessControlAllowHeaders = ({ headers }: EvaluatedCorsOptions, event: CorsRequiredEvent) => {
   const headerStr =
     headers === true
-      ? event.sanitizedHeaders['access-control-request-headers'] ?? ''
+      ? (event.sanitizedHeaders['access-control-request-headers'] ?? '')
       : headers.join(',');
   return headerStr ? { 'Access-Control-Allow-Headers': headerStr } : undefined;
 };

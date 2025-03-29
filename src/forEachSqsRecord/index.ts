@@ -1,6 +1,6 @@
 import { SQSBatchResponse, SQSEvent, SQSRecord, SQSBatchItemFailure } from 'aws-lambda';
-import { Middleware } from '../core';
-import { TypeRef } from '../core/TypeRef';
+import { Middleware } from '@thrty/core/src';
+import { TypeRef } from '../../packages/core/src/TypeRef';
 
 type ForeachRequiredEvent = SQSEvent & { deps?: { logger?: { error: (...args: any[]) => any } } };
 type ForeachNextEvent<TEvent extends ForeachRequiredEvent, TBody> = Omit<TEvent, 'Records'> & {
