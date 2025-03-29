@@ -10,9 +10,3 @@ export const eventType =
   (handler) =>
   (...args) =>
     handler(...args);
-
-export const types =
-  <TEvent, TReturnValue>(): Middleware<TEvent, TEvent, TReturnValue, TReturnValue> =>
-  (next) =>
-  (...args) =>
-    next(...args);

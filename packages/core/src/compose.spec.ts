@@ -13,27 +13,37 @@ it('should apply middlewares in reverse', async () => {
 it('should execute middleware handlers in order', async () => {
   const order: any[] = [];
   const middleware1 =
-    (handler) =>
-    (...args) => {
+    (next: any) =>
+    (...args: any[]) => {
       order.push(middleware1);
-      return handler(...args);
+      return next(...args);
     };
+  middleware1['meta'] = { 1: '1' };
   const middleware2 =
-    (handler) =>
-    (...args) => {
+    (next: any) =>
+    (...args: any[]) => {
       order.push(middleware2);
-      return handler(...args);
+      return next(...args);
+    };
+  middleware2['meta'] = { 2: '2' };
+  const middleware3 =
+    (next: any) =>
+    (...args: any[]) => {
+      order.push(middleware3);
+      return next(...args);
     };
 
-  compose(middleware1, middleware2)(async () => {})({});
+  const composedHandler = compose(middleware1, middleware2, middleware3)(async () => {});
+  composedHandler({});
 
-  expect(order).toEqual([middleware1, middleware2]);
+  expect(order).toEqual([middleware1, middleware2, middleware3]);
+  expect(composedHandler.meta).toEqual({ 1: '1', 2: '2' });
 });
 
 it('should provide actual handler reference via "actual" property', async () => {
   const middleware =
-    (actual) =>
-    (...args) =>
+    (actual: any) =>
+    (...args: any[]) =>
       actual(...args);
   const actualHandler = async () => {};
   const handler = compose(middleware, middleware)(actualHandler);
@@ -43,21 +53,21 @@ it('should provide actual handler reference via "actual" property', async () => 
 
 it('should not provide actual handler reference via "actual" property in case of 1 middleware', async () => {
   const middleware =
-    (actual) =>
-    (...args) =>
+    (actual: any) =>
+    (...args: any[]) =>
       actual(...args);
   const actualHandler = async () => {};
-  const handler = compose(middleware)(actualHandler);
+  const handler = compose(middleware)(actualHandler) as any as { actual: undefined };
 
   expect(handler['actual']).toBe(undefined);
 });
 
 it('should be able to enhance events through middlewares', async () => {
   const middleware =
-    (actual) =>
-    (event, ...args) =>
+    (actual: any) =>
+    (event: any, ...args: any[]) =>
       actual(Object.assign(event, { test: 1 }), ...args);
-  const actualHandler = async (event) => event.test;
+  const actualHandler = async (event: any) => event.test;
   const handler = compose(middleware)(actualHandler);
   const event = {};
 
