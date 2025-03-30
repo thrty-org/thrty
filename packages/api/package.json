@@ -28,7 +28,9 @@
     "test": "jest"
   },
   "peerDependencies": {
-    "@thrty/core": "^3.0.0-alpha.0"
+    "@thrty/core": "^3.0.0-alpha.0",
+    "@types/aws-lambda": "^8.10.148",
+    "aws-lambda": "^1.0.7"
   },
   "jest": {
     "transform": {
