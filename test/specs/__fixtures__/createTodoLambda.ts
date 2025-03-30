@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { inject } from 'thirty/inject';
+import { inject } from '@thrty/inject';
 import { z } from 'zod';
 import { compose, types } from '@thrty/core';
 import { post, authorizer } from '@thrty/api';

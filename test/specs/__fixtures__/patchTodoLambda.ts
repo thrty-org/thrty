@@ -2,7 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { compose, types } from '@thrty/core';
 import { authorizer, patch } from '@thrty/api';
 import { requestBody, responseBody } from '@thrty/api-zod';
-import { inject } from 'thirty/inject';
+import { inject } from '@thrty/inject';
 import { z } from 'zod';
 import { todoRepositoryProviders } from './todoRepositoryProviders';
 import { scopes } from './scopes';

@@ -10,6 +10,7 @@
     "@thrty/api-zod": "*",
     "@thrty/cli": "*",
     "@thrty/core": "*",
+    "@thrty/inject": "*",
     "@thrty/meta": "*"
   },
   "jest": {

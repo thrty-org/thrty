@@ -1,7 +1,7 @@
 import { compose, types } from '@thrty/core/src';
 
 import { registerHttpErrorHandler } from './index';
-import { inject } from '../inject';
+import { inject } from '../../packages/inject/src';
 import { APIGatewayEvent } from 'aws-lambda';
 import { BadRequestError, InternalServerError, NotFoundError, UnauthorizedError } from '../errors';
 import { ForbiddenError } from '../errors/ForbiddenError';
