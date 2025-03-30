@@ -1,4 +1,4 @@
-import { Middleware } from '@thrty/core/src';
+import { Middleware } from '@thrty/core';
 
 export type LazyInject<TDeps> = <TTargetKey extends keyof TDeps>(
   key: TTargetKey,
@@ -21,7 +21,7 @@ export const inject =
     depsFactories: D,
   ): Middleware<T, Deps<DepsOf<D>> & T, R, R> =>
   (handler) => {
-    let container;
+    let container: any;
     return (event, ...args) => {
       if (!container) {
         container = createContainer(depsFactories);
@@ -31,9 +31,9 @@ export const inject =
   };
 
 export const createContainer = <D extends DepsFactories<DepsOf<D>>>(factories: D): DepsOf<D> => {
-  const cache = {};
-  const circularDepIndicator = {};
-  const inject = (id) => container[id];
+  const cache: { [key: string]: any } = {};
+  const circularDepIndicator: { [key: string]: boolean } = {};
+  const inject = (id: string) => container[id];
   let depChainKeys: string[] = [];
   const container = new Proxy(factories, {
     get(target, key: string) {
@@ -54,5 +54,3 @@ export const createContainer = <D extends DepsFactories<DepsOf<D>>>(factories: D
   }) as DepsOf<D>;
   return container;
 };
-
-export const withInject = (deps) => ({ ...deps, inject: (id) => deps[id] });

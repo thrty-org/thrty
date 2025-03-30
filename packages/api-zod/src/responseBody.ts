@@ -1,8 +1,7 @@
 import { APIGatewayProxyResult } from 'aws-lambda';
-import { Middleware, types } from '@thrty/core';
+import { Middleware } from '@thrty/core';
 import { ResponseBody, ResponseBodyMeta } from '@thrty/api';
 import { TypeOf, ZodType } from 'zod';
-import { InternalServerError } from 'thirty/errors';
 
 export type OutputResult<TResult, TBody extends ZodType> = Omit<TResult, 'body'> &
   ResponseBody<TypeOf<TBody>>;
@@ -25,7 +24,7 @@ export const responseBody = <TEvent, R extends APIGatewayProxyResult, const TBod
         if (validate) {
           const { success } = _body.safeParse(body);
           if (!success) {
-            throw new InternalServerError('Invalid response body');
+            throw new Error('Invalid response body');
           }
         }
         return {

@@ -3,7 +3,7 @@ import { SQSBatchResponse, SQSEvent, SQSRecord } from 'aws-lambda';
 import { forEachSqsRecord } from './index';
 import { of } from '../../packages/core/src/TypeRef';
 import { mock } from '../types/mock';
-import { inject } from '../inject';
+import { inject } from '../../packages/inject/src';
 
 interface SomeMessageBody {
   id: string;

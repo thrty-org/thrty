@@ -1,9 +1,9 @@
-import { compose, eventType } from '@thrty/core/src';
+import { compose, eventType } from '@thrty/core';
 import { inject, Injector, LazyInject } from './index';
 
-let handler;
+let handler: any;
 
-type Deps = { cService; aService: { a } } & Injector;
+type Deps = { cService: any; aService: { a: any } } & Injector;
 
 const aService = jest.fn().mockImplementation((deps) => ({ a: 'a', test: () => deps.bService.b }));
 const bService = jest.fn().mockImplementation(({ cService, inject }: Deps) => ({
@@ -103,7 +103,10 @@ it('should handle access on properties that are not defined on dependency factor
     inject({
       value: () => '',
     }),
-  )(async (event) => event.deps['undefinedDependency']);
+  )(async (event) => {
+    // @ts-expect-error - Should complain about unknown property
+    return event.deps['undefinedDependency'];
+  });
   await expect(_handler({})).resolves.toBeUndefined();
 });
 

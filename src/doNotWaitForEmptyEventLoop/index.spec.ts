@@ -1,6 +1,6 @@
 import { compose, types } from '@thrty/core/src';
 import { doNotWaitForEmptyEventLoop } from './index';
-import { inject } from '../inject';
+import { inject } from '../../packages/inject/src';
 
 let handler;
 
