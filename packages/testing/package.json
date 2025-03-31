@@ -1,0 +1,41 @@
+{
+  "name": "@thrty/testing",
+  "version": "3.0.0-alpha.5",
+  "author": "Robin Baum",
+  "license": "ISC",
+  "description": "Utils for testing composed Lambda functions",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thrty-org/thrty.git",
+    "directory": "packages/testing"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "import": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "require": {
+      "types": "./dist/index.d.cts",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "scripts": {
+    "test": "jest",
+    "build": "tsup"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.(ts)$": "ts-jest"
+    }
+  },
+  "peerDependencies": {
+    "@thrty/core": "^3.0.0-alpha.0",
+    "@thrty/http-errors": "^3.0.0-alpha.0",
+    "@types/aws-lambda": "^8.10.148",
+    "aws-lambda": "^1.0.7"
+  }
+}
