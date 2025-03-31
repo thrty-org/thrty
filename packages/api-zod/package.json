@@ -24,7 +24,13 @@
     }
   },
   "scripts": {
+    "test": "jest",
     "build": "tsup"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.(ts)$": "ts-jest"
+    }
   },
   "peerDependencies": {
     "@thrty/api": "^3.0.0-alpha.0",
