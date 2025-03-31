@@ -1,5 +1,5 @@
 export type QueryParams<T = unknown> = {
-  queryParams?: T;
+  queryParams: T;
 };
 export type QueryParamsMeta<T = unknown> = {
   queryParams?: T;

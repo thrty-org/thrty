@@ -1,8 +1,8 @@
 import type { RequestBody, RequestBodyMeta } from '@thrty/api';
 import type { Middleware } from '@thrty/core';
 import type { APIGatewayProxyEvent } from 'aws-lambda';
-import type { TypeOf, ZodError, ZodIssue, ZodType } from 'zod';
-import { BadRequestError } from '@thrty/http-errors';
+import type { TypeOf, ZodError, ZodType } from 'zod';
+import { ZodBadRequestError } from './ZodBadRequestError';
 
 export interface RequestBodyOptions {
   /**
@@ -51,11 +51,3 @@ export const requestBody = <TEvent extends APIGatewayProxyEvent, R, const TBody 
 };
 
 type OutputEvent<TInputEvent, TBody extends ZodType> = TInputEvent & RequestBody<TypeOf<TBody>>;
-
-export class ZodBadRequestError extends BadRequestError {
-  issues: ZodIssue[];
-  constructor(message: string, issues: ZodIssue[]) {
-    super(message);
-    this.issues = issues;
-  }
-}

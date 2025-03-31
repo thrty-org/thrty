@@ -2,7 +2,8 @@ import { compose, types, typesOf } from '@thrty/core';
 import { fromPartial } from '@thrty/testing';
 import { z } from 'zod';
 import { APIGatewayProxyEvent, APIGatewayProxyHandler } from 'aws-lambda';
-import { requestBody, ZodBadRequestError } from './requestBody';
+import { requestBody } from './requestBody';
+import { ZodBadRequestError } from './ZodBadRequestError';
 
 const handler = compose(
   typesOf<APIGatewayProxyHandler>(),

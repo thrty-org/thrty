@@ -3,7 +3,8 @@ import { fromPartial } from '@thrty/testing';
 import { z } from 'zod';
 import { APIGatewayProxyEvent, APIGatewayProxyHandler } from 'aws-lambda';
 import { responseBody } from './responseBody';
-import { ZodBadRequestError } from './requestBody';
+
+import { ZodBadRequestError } from './ZodBadRequestError';
 
 describe('given type of response body is invalid', () => {
   describe('and validate is false (default)', () => {
