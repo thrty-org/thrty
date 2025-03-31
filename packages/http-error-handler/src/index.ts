@@ -1,6 +1,6 @@
-import { Middleware } from '@thrty/core/src';
-import { BaseError } from '../errors';
-import { APIGatewayProxyResult } from '../types/APIGatewayProxyResult';
+import { Middleware } from '@thrty/core';
+import { BaseError } from '@thrty/http-errors';
+import { APIGatewayProxyResult } from 'aws-lambda';
 
 export type BlacklistItem = {
   alternativeMessage: string;
@@ -10,12 +10,10 @@ export type BlacklistItem = {
 
 interface ErrorLogger {
   error(...args: any[]): any;
-
   [log: string]: any;
 }
 
 export interface HttpErrorHandlerOptions {
-  logError?: (message: any) => any;
   logger?: ErrorLogger;
   /**
    * List of errors with status codes, where error message should be obfuscated
@@ -54,18 +52,17 @@ type HttpErrorHandlerRequiredEvents = {
   deps?: { logger?: ErrorLogger };
 };
 
-export const registerHttpErrorHandler =
-  <T extends HttpErrorHandlerRequiredEvents, R extends APIGatewayProxyResult>(
+export const httpErrorHandler =
+  <T extends HttpErrorHandlerRequiredEvents, R>(
     options: HttpErrorHandlerOptions = {},
   ): Middleware<T, T, Promise<R>, Promise<R>> =>
   (handler) =>
   async (event, ...args) =>
     handler(event, ...args).catch((error) => {
       const resolvedOptions = { ...defaultOptions, ...options };
-      const logError = getLogError(event, resolvedOptions);
-      if (error) {
-        logError(error);
-      }
+      const logger = event.deps?.logger ?? options.logger ?? console;
+      logger.error(error);
+
       const { statusCode, message, ...errorProps } = getSafeResponse(resolvedOptions, error);
       return {
         statusCode,
@@ -78,14 +75,6 @@ export const registerHttpErrorHandler =
         }),
       } satisfies APIGatewayProxyResult as unknown as R;
     });
-
-export const getLogError = (
-  event: HttpErrorHandlerRequiredEvents,
-  options: HttpErrorHandlerOptions,
-) => {
-  const logger = event.deps?.logger ?? options.logger;
-  return logger ? (...args: any[]) => logger?.error(...args) : (options.logError ?? (() => null));
-};
 
 export const getSafeResponse = (options: ResolvedHttpErrorHandlerOptions, error?: any) => {
   const isSafeErrorInstance = error instanceof options.safeBaseError;

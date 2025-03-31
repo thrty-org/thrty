@@ -2,7 +2,7 @@ import { verifyJwt, tokenFromCookieFactory, tokenFromHeaderFactory } from './ind
 import { sign } from 'jsonwebtoken';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { compose, eventType } from '@thrty/core/src';
-import { UnauthorizedError } from '../errors/UnauthorizedError';
+import { UnauthorizedError } from '../../packages/http-errors/src/UnauthorizedError';
 
 let handler;
 let token;

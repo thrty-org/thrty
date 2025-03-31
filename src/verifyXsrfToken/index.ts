@@ -2,7 +2,7 @@ import { APIGatewayProxyEvent } from 'aws-lambda';
 import Csrf from 'csrf';
 
 import { Middleware } from '@thrty/core/src';
-import { UnauthorizedError } from '../errors/UnauthorizedError';
+import { UnauthorizedError } from '../../packages/http-errors/src/UnauthorizedError';
 import { SanitizedHeadersEvent } from '../sanitizeHeaders';
 
 export const XSRF_HEADER_NAME = 'x-xsrf-token';

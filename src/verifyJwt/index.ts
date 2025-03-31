@@ -1,6 +1,6 @@
 import { decode, verify, VerifyOptions } from 'jsonwebtoken';
 import { Middleware } from '@thrty/core/src';
-import { UnauthorizedError } from '../errors/UnauthorizedError';
+import { UnauthorizedError } from '../../packages/http-errors/src/UnauthorizedError';
 import { SanitizedHeadersEvent } from '../sanitizeHeaders';
 
 export interface JwtAuthOptions<T> extends VerifyOptions {

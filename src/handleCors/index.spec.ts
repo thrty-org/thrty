@@ -2,8 +2,8 @@ import { compose, types } from '@thrty/core/src';
 import { handleCors } from './index';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { sanitizeHeaders } from '../sanitizeHeaders';
-import { registerHttpErrorHandler } from '../registerHttpErrorHandler';
-import { NotFoundError } from '../errors';
+import { httpErrorHandler } from '../../packages/http-error-handler/src';
+import { NotFoundError } from '../../packages/http-errors/src';
 import { APIGatewayProxyResult } from '../types/APIGatewayProxyResult';
 
 let handler;
@@ -147,7 +147,7 @@ describe('registerHttpErrorHandler', () => {
       types<APIGatewayProxyEvent, Promise<APIGatewayProxyResult>>(),
       sanitizeHeaders(),
       handleCors(),
-      registerHttpErrorHandler(),
+      httpErrorHandler(),
     )(async () => {
       throw new NotFoundError('Not found');
     });

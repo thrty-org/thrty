@@ -1,28 +1,43 @@
-import { compose, types } from '@thrty/core/src';
+import { compose, types } from '@thrty/core';
+import { inject } from '@thrty/inject';
+import { fromPartial } from '@thrty/testing';
+import {
+  ForbiddenError,
+  BadRequestError,
+  InternalServerError,
+  NotFoundError,
+  UnauthorizedError,
+} from '@thrty/http-errors';
+import {
+  APIGatewayEvent,
+  APIGatewayProxyEvent,
+  APIGatewayProxyResult as AwsLambdaAPIGatewayProxyResult,
+} from 'aws-lambda';
+import { httpErrorHandler } from './index';
 
-import { registerHttpErrorHandler } from './index';
-import { inject } from '../../packages/inject/src';
-import { APIGatewayEvent } from 'aws-lambda';
-import { BadRequestError, InternalServerError, NotFoundError, UnauthorizedError } from '../errors';
-import { ForbiddenError } from '../errors/ForbiddenError';
-import { APIGatewayProxyResult } from '../types/APIGatewayProxyResult';
+type APIGatewayProxyResult = Omit<AwsLambdaAPIGatewayProxyResult, 'body'> & {
+  body?: string;
+};
+
+const noop = () => null;
 
 describe('simple setup', () => {
-  let handler;
   let throwError: jest.Mock;
+  let handler = compose(
+    types<APIGatewayEvent, Promise<APIGatewayProxyResult>>(),
+    httpErrorHandler({
+      logger: { error: noop },
+    }),
+  )(async (event) => {
+    throwError();
+
+    return {
+      statusCode: 200,
+    };
+  });
 
   beforeAll(() => {
     throwError = jest.fn();
-    handler = compose(
-      types<APIGatewayEvent, Promise<APIGatewayProxyResult>>(),
-      registerHttpErrorHandler(),
-    )(async (event) => {
-      throwError();
-
-      return {
-        statusCode: 200,
-      };
-    });
   });
 
   it('should return response with statusCode and message of thrown error', async () => {
@@ -30,7 +45,7 @@ describe('simple setup', () => {
     throwError.mockImplementation(() => {
       throw new BadRequestError('BadRequest');
     });
-    const response = await handler({});
+    const response = await handler(fromPartial<APIGatewayProxyEvent>({}));
 
     expect(response).toEqual({
       statusCode: error.statusCode,
@@ -47,7 +62,7 @@ describe('simple setup', () => {
     throwError.mockImplementation(() => {
       throw new Error('Test');
     });
-    const response = await handler({});
+    const response = await handler(fromPartial<APIGatewayProxyEvent>({}));
 
     expect(response).toEqual({
       statusCode: 500,
@@ -64,7 +79,7 @@ describe('simple setup', () => {
     throwError.mockImplementation(() => {
       throw new InternalServerError('Sensitive data');
     });
-    const response = await handler({});
+    const response = await handler(fromPartial<APIGatewayProxyEvent>({}));
 
     expect(response).toEqual({
       statusCode: 500,
@@ -81,7 +96,7 @@ describe('simple setup', () => {
     throwError.mockImplementation(() => {
       throw new UnauthorizedError('Sensitive data');
     });
-    const response = await handler({});
+    const response = await handler(fromPartial<APIGatewayProxyEvent>({}));
 
     expect(response).toEqual({
       statusCode: 401,
@@ -98,7 +113,7 @@ describe('simple setup', () => {
     throwError.mockImplementation(() => {
       throw new ForbiddenError('Sensitive data');
     });
-    const response = await handler({});
+    const response = await handler(fromPartial<APIGatewayProxyEvent>({}));
 
     expect(response).toEqual({
       statusCode: 403,
@@ -113,30 +128,30 @@ describe('simple setup', () => {
 });
 
 describe('blacklist', () => {
-  let handler;
+  const handler = compose(
+    types<APIGatewayEvent, Promise<APIGatewayProxyResult>>(),
+    httpErrorHandler({
+      logger: { error: noop },
+      blacklist: [{ alternativeMessage: 'Error', statusCode: 404 }],
+    }),
+  )(async (event) => {
+    throwError();
+
+    return {
+      statusCode: 200,
+    };
+  });
   let throwError: jest.Mock;
 
   beforeAll(() => {
     throwError = jest.fn();
-    handler = compose(
-      types<APIGatewayEvent, Promise<APIGatewayProxyResult>>(),
-      registerHttpErrorHandler({
-        blacklist: [{ alternativeMessage: 'Error', statusCode: 404 }],
-      }),
-    )(async (event) => {
-      throwError();
-
-      return {
-        statusCode: 200,
-      };
-    });
   });
 
   it('should return "Error" with statusCode "404"', async () => {
     throwError.mockImplementation(() => {
       throw new NotFoundError('Sensitive data');
     });
-    const response = await handler({});
+    const response = await handler(fromPartial<APIGatewayProxyEvent>({}));
 
     expect(response).toEqual({
       statusCode: 404,
@@ -153,7 +168,7 @@ describe('blacklist', () => {
     throwError.mockImplementation(() => {
       throw new UnauthorizedError('Sensitive data');
     });
-    const response = await handler({});
+    const response = await handler(fromPartial<APIGatewayProxyEvent>({}));
 
     expect(response).toEqual({
       statusCode: 401,
@@ -168,26 +183,25 @@ describe('blacklist', () => {
 });
 
 describe('event.deps.logger', () => {
-  let handler;
+  const handler = compose(
+    types<APIGatewayEvent, Promise<APIGatewayProxyResult>>(),
+    inject({
+      logger: () => ({ error: logError }),
+    }),
+    httpErrorHandler(),
+  )(async (event) => {
+    throwError();
+
+    return {
+      statusCode: 200,
+    };
+  });
   let throwError: jest.Mock;
   let logError: jest.Mock;
 
   beforeAll(() => {
     throwError = jest.fn();
     logError = jest.fn();
-    handler = compose(
-      types<APIGatewayEvent, Promise<APIGatewayProxyResult>>(),
-      inject({
-        logger: () => ({ error: logError }),
-      }),
-      registerHttpErrorHandler(),
-    )(async (event) => {
-      throwError();
-
-      return {
-        statusCode: 200,
-      };
-    });
   });
 
   it('should call logger.error with original message', async () => {
@@ -195,13 +209,13 @@ describe('event.deps.logger', () => {
     throwError.mockImplementation(() => {
       throw error;
     });
-    await handler({});
+    await handler(fromPartial<APIGatewayProxyEvent>({}));
     expect(logError).toHaveBeenCalledWith(error);
   });
 });
 
 describe('options.logger', () => {
-  let handler;
+  let handler: any;
   let throwError: jest.Mock;
   let logError: jest.Mock;
 
@@ -210,7 +224,7 @@ describe('options.logger', () => {
     logError = jest.fn();
     handler = compose(
       types<APIGatewayEvent, Promise<APIGatewayProxyResult>>(),
-      registerHttpErrorHandler({
+      httpErrorHandler({
         logger: { error: logError },
       }),
     )(async (event) => {
@@ -227,39 +241,7 @@ describe('options.logger', () => {
     throwError.mockImplementation(() => {
       throw error;
     });
-    await handler({});
-    expect(logError).toHaveBeenCalledWith(error);
-  });
-});
-
-describe('options.logError', () => {
-  let handler;
-  let throwError: jest.Mock;
-  let logError: jest.Mock;
-
-  beforeAll(() => {
-    throwError = jest.fn();
-    logError = jest.fn();
-    handler = compose(
-      types<APIGatewayEvent, Promise<APIGatewayProxyResult>>(),
-      registerHttpErrorHandler({
-        logError,
-      }),
-    )(async (event) => {
-      throwError();
-
-      return {
-        statusCode: 200,
-      };
-    });
-  });
-
-  it('should call logError with original message', async () => {
-    const error = new Error('Something went wrong');
-    throwError.mockImplementation(() => {
-      throw error;
-    });
-    await handler({});
+    await handler(fromPartial<APIGatewayProxyEvent>({}));
     expect(logError).toHaveBeenCalledWith(error);
   });
 });
