@@ -80,7 +80,7 @@ describe('given props are missing on request body', () => {
     expect(result).toHaveProperty('issues', [
       {
         code: 'invalid_type',
-        expected: 'date',
+        expected: 'string',
         message: 'Required',
         path: ['birthDate'],
         received: 'undefined',
