@@ -1,21 +1,20 @@
-import { compose, types } from '@thrty/core/src';
+import { compose, typesOf } from '@thrty/core';
+import { fromPartial } from '@thrty/testing';
+import { NotFoundError } from '@thrty/http-errors';
+import { httpErrorHandler } from '@thrty/http-error-handler';
+import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
 import { handleCors } from './index';
-import { APIGatewayProxyEvent } from 'aws-lambda';
-import { sanitizeHeaders } from '../sanitizeHeaders';
-import { httpErrorHandler } from '../../packages/http-error-handler/src';
-import { NotFoundError } from '../../packages/http-errors/src';
-import { APIGatewayProxyResult } from '../types/APIGatewayProxyResult';
 
-let handler;
+let handler: (event: APIGatewayProxyEvent) => Promise<APIGatewayProxyResult>;
 
 beforeAll(() => {
   handler = compose(
-    types<APIGatewayProxyEvent, Promise<APIGatewayProxyResult>>(),
-    sanitizeHeaders(),
+    typesOf<APIGatewayProxyHandler>(),
     handleCors(),
   )(async (event) => {
     return {
       statusCode: 200,
+      body: JSON.stringify({}),
       headers: {
         'Set-Cookie': 'session=1234',
       },
@@ -24,7 +23,7 @@ beforeAll(() => {
 });
 
 it('should return preflight headers on OPTIONS request', async () => {
-  const response = await handler({ httpMethod: 'OPTIONS' });
+  const response = await handler(fromPartial<APIGatewayProxyEvent>({ httpMethod: 'OPTIONS' }));
   expect(response).toEqual({
     headers: {
       'Access-Control-Allow-Credentials': 'true',
@@ -37,13 +36,14 @@ it('should return preflight headers on OPTIONS request', async () => {
 });
 
 it('should add handleCors headers on any other request', async () => {
-  const response = await handler({ httpMethod: 'GET' });
+  const response = await handler(fromPartial<APIGatewayProxyEvent>({ httpMethod: 'GET' }));
   expect(response).toEqual({
     headers: {
       'Set-Cookie': 'session=1234',
       'Access-Control-Allow-Credentials': 'true',
       'Access-Control-Allow-Origin': '*',
     },
+    body: JSON.stringify({}),
     statusCode: 200,
   });
 });
@@ -51,12 +51,12 @@ it('should add handleCors headers on any other request', async () => {
 describe('with origin=test', () => {
   beforeAll(() => {
     handler = compose(
-      types<APIGatewayProxyEvent, Promise<APIGatewayProxyResult>>(),
-      sanitizeHeaders(),
+      typesOf<APIGatewayProxyHandler>(),
       handleCors({ origin: 'test' }),
     )(async (event) => {
       return {
         statusCode: 200,
+        body: JSON.stringify({}),
         headers: {
           'Set-Cookie': 'session=1234',
         },
@@ -65,7 +65,7 @@ describe('with origin=test', () => {
   });
 
   it('should return Access-Control-Allow-Origin set to "test"', async () => {
-    const response = await handler({ httpMethod: 'OPTIONS' });
+    const response = await handler(fromPartial<APIGatewayProxyEvent>({ httpMethod: 'OPTIONS' }));
     expect(response.headers).toEqual(
       expect.objectContaining({
         'Access-Control-Allow-Origin': 'test',
@@ -77,12 +77,12 @@ describe('with origin=test', () => {
 describe('with origin=[test]', () => {
   beforeAll(() => {
     handler = compose(
-      types<APIGatewayProxyEvent, Promise<APIGatewayProxyResult>>(),
-      sanitizeHeaders(),
+      typesOf<APIGatewayProxyHandler>(),
       handleCors({ origin: ['test'] }),
     )(async (event) => {
       return {
         statusCode: 200,
+        body: JSON.stringify({}),
         headers: {
           'Set-Cookie': 'session=1234',
         },
@@ -91,7 +91,9 @@ describe('with origin=[test]', () => {
   });
 
   it('should return Access-Control-Allow-Origin set to "test" due to request header', async () => {
-    const response = await handler({ httpMethod: 'OPTIONS', headers: { origin: 'test' } });
+    const response = await handler(
+      fromPartial<APIGatewayProxyEvent>({ httpMethod: 'OPTIONS', headers: { origin: 'test' } }),
+    );
     expect(response.headers).toEqual(
       expect.objectContaining({
         'Access-Control-Allow-Origin': 'test',
@@ -100,10 +102,12 @@ describe('with origin=[test]', () => {
   });
 
   it('should return Access-Control-Allow-Origin set to "null" due to invalid request-origin', async () => {
-    const response = await handler({
-      httpMethod: 'OPTIONS',
-      headers: { origin: 'invalid' },
-    });
+    const response = await handler(
+      fromPartial<APIGatewayProxyEvent>({
+        httpMethod: 'OPTIONS',
+        headers: { origin: 'invalid' },
+      }),
+    );
     expect(response.headers).toEqual(
       expect.objectContaining({
         'Access-Control-Allow-Origin': 'null',
@@ -115,12 +119,12 @@ describe('with origin=[test]', () => {
 describe('preflight', () => {
   beforeAll(() => {
     handler = compose(
-      types<APIGatewayProxyEvent, Promise<APIGatewayProxyResult>>(),
-      sanitizeHeaders(),
+      typesOf<APIGatewayProxyHandler>(),
       handleCors({ preflight: false }),
     )(async (event) => {
       return {
         statusCode: 200,
+        body: JSON.stringify({}),
         headers: {
           'Set-Cookie': 'session=1234',
         },
@@ -129,32 +133,32 @@ describe('preflight', () => {
   });
 
   it('should not return preflight headers on OPTIONS request', async () => {
-    const response = await handler({ httpMethod: 'OPTIONS' });
+    const response = await handler(fromPartial<APIGatewayProxyEvent>({ httpMethod: 'OPTIONS' }));
     expect(response).toEqual({
       headers: {
         'Access-Control-Allow-Credentials': 'true',
         'Access-Control-Allow-Origin': '*',
         'Set-Cookie': 'session=1234',
       },
+      body: '{}',
       statusCode: 200,
     });
   });
 });
 
-describe('registerHttpErrorHandler', () => {
+describe('with httpErrorHandler', () => {
   beforeAll(() => {
     handler = compose(
-      types<APIGatewayProxyEvent, Promise<APIGatewayProxyResult>>(),
-      sanitizeHeaders(),
+      typesOf<APIGatewayProxyHandler>(),
       handleCors(),
-      httpErrorHandler(),
+      httpErrorHandler({ logger: false }),
     )(async () => {
       throw new NotFoundError('Not found');
     });
   });
 
   it('should add access control headers after error appeared', async () => {
-    const response = await handler({ httpMethod: 'GET' });
+    const response = await handler(fromPartial<APIGatewayProxyEvent>({ httpMethod: 'GET' }));
     expect(response).toEqual({
       headers: {
         'Access-Control-Allow-Credentials': 'true',

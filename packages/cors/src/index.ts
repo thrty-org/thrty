@@ -1,6 +1,5 @@
-import { Middleware } from '@thrty/core/src';
-import { SanitizedHeadersEvent } from '../sanitizeHeaders';
-import { APIGatewayProxyResult } from '../types/APIGatewayProxyResult';
+import type { Middleware } from '@thrty/core';
+import type { APIGatewayProxyResult } from 'aws-lambda';
 
 export interface CorsOptions {
   /**
@@ -55,8 +54,9 @@ export const defaultCorsOptions: EvaluatedCorsOptions = {
   maxAge: false,
 };
 
-interface CorsRequiredEvent extends SanitizedHeadersEvent {
+interface CorsRequiredEvent {
   httpMethod: string;
+  headers: { [key: string]: string | undefined } | null;
 }
 
 export const handleCors =
@@ -76,7 +76,7 @@ export const handleCors =
           ...accessControlAllowMethods(evaluatedOptions),
           ...accessControlAllowMaxAge(evaluatedOptions),
         },
-      } satisfies APIGatewayProxyResult as unknown as R;
+      } satisfies Omit<APIGatewayProxyResult, 'body'> as unknown as R;
     }
     let response = await handler(event, ...rest);
 
@@ -92,12 +92,12 @@ export const handleCors =
   };
 
 const accessControlAllowOrigin = ({ origin }: EvaluatedCorsOptions, event: CorsRequiredEvent) => {
-  const requestOrigin = event.sanitizedHeaders['origin'];
+  const requestOrigin = event.headers?.['origin'] ?? null;
   let _origin: string | null = null;
   if (origin === true) {
     _origin = requestOrigin;
   } else if (Array.isArray(origin)) {
-    if (origin.includes(requestOrigin)) {
+    if (requestOrigin && origin.includes(requestOrigin)) {
       _origin = requestOrigin;
     }
   } else {
@@ -114,7 +114,7 @@ const accessControlAllowCredentials = ({ credentials }: EvaluatedCorsOptions) =>
 const accessControlAllowHeaders = ({ headers }: EvaluatedCorsOptions, event: CorsRequiredEvent) => {
   const headerStr =
     headers === true
-      ? (event.sanitizedHeaders['access-control-request-headers'] ?? '')
+      ? (event.headers?.['access-control-request-headers'] ?? '')
       : headers.join(',');
   return headerStr ? { 'Access-Control-Allow-Headers': headerStr } : undefined;
 };
