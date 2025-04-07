@@ -19,15 +19,11 @@ type APIGatewayProxyResult = Omit<AwsLambdaAPIGatewayProxyResult, 'body'> & {
   body?: string;
 };
 
-const noop = () => null;
-
 describe('simple setup', () => {
   let throwError: jest.Mock;
   let handler = compose(
     types<APIGatewayEvent, Promise<APIGatewayProxyResult>>(),
-    httpErrorHandler({
-      logger: { error: noop },
-    }),
+    httpErrorHandler({ logger: false }),
   )(async (event) => {
     throwError();
 
@@ -131,7 +127,7 @@ describe('blacklist', () => {
   const handler = compose(
     types<APIGatewayEvent, Promise<APIGatewayProxyResult>>(),
     httpErrorHandler({
-      logger: { error: noop },
+      logger: false,
       blacklist: [{ alternativeMessage: 'Error', statusCode: 404 }],
     }),
   )(async (event) => {

@@ -19,10 +19,12 @@
     "test"
   ],
   "devDependencies": {
+    "@thrty/http-error-handler": "^3.0.0-alpha.5",
+    "@thrty/http-errors": "^3.0.0-alpha.5",
+    "@thrty/testing": "^3.0.0-alpha.5",
     "@types/aws-lambda": "^8.10.148",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.13.9",
-    "@thrty/testing": "^3.0.0-alpha.5",
     "aws-cdk-lib": "^2.181.1",
     "aws-lambda": "^1.0.0",
     "axios": "^1.8.2",
@@ -44,8 +46,5 @@
     "singleQuote": true,
     "printWidth": 100,
     "trailingComma": "all"
-  },
-  "dependencies": {
-    "@thrty/http-errors": "^3.0.0-alpha.5"
   }
 }
