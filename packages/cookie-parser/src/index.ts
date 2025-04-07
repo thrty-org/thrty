@@ -1,7 +1,6 @@
 import { parse } from 'cookie';
 import { APIGatewayRequestAuthorizerEventHeaders } from 'aws-lambda';
-
-import { Middleware } from '@thrty/core/src';
+import { Middleware } from '@thrty/core';
 
 export interface ParseCookieRequiredEvent {
   headers: APIGatewayRequestAuthorizerEventHeaders | null;
