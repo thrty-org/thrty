@@ -1,8 +1,6 @@
-import { compose, types } from '@thrty/core/src';
-import { APIGatewayEvent } from 'aws-lambda';
-import { serializeJson } from './';
-import { APIGatewayProxyResult } from '../types/APIGatewayProxyResult';
-import { of } from '../../packages/core/src/TypeRef';
+import { compose, types, of } from '@thrty/core';
+import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { serializeJson } from './index';
 
 describe('given no body type is specified', () => {
   const createHandler = () =>

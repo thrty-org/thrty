@@ -1,9 +1,8 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
-import { compose, types } from '@thrty/core/src';
+import { compose, types, of } from '@thrty/core';
 import { parseJson } from './index';
-import { of } from '../../packages/core/src/TypeRef';
 
-let handler;
+let handler: any;
 const body = { name: 'bob', age: 12 };
 
 beforeEach(() => {

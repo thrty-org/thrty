@@ -1,6 +1,5 @@
-import { APIGatewayProxyResult } from '../types/APIGatewayProxyResult';
-import { Middleware } from '@thrty/core/src';
-import { TypeRef } from '../../packages/core/src/TypeRef';
+import { APIGatewayProxyResult } from 'aws-lambda';
+import { Middleware, TypeRef } from '@thrty/core';
 
 export type SerializeJsonOptions<TBody = object> = Omit<APIGatewayProxyResult, 'body'> & {
   body?: TBody;
