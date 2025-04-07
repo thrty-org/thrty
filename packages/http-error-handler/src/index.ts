@@ -14,7 +14,13 @@ interface ErrorLogger {
 }
 
 export interface HttpErrorHandlerOptions {
-  logger?: ErrorLogger;
+  /**
+   * Logger to use for logging errors.
+   * If not provided, console will be used.
+   * If set to false, no logging will be done.
+   * @default console
+   */
+  logger?: ErrorLogger | false;
   /**
    * List of errors with status codes, where error message should be obfuscated
    * @default [
@@ -32,20 +38,6 @@ type ResolvedHttpErrorHandlerOptions = Required<
   Pick<HttpErrorHandlerOptions, 'blacklist' | 'safeBaseError'>
 >;
 
-const unknownError = {
-  statusCode: undefined,
-  alternativeMessage: 'InternalServerError',
-  alternativeStatusCode: 500,
-};
-const internalServerError = { statusCode: 500, alternativeMessage: 'InternalServerError' };
-const forbiddenError = { statusCode: 403, alternativeMessage: 'Forbidden' };
-const unauthorizedError = { statusCode: 401, alternativeMessage: 'Unauthorized' };
-
-const defaultOptions: ResolvedHttpErrorHandlerOptions = {
-  blacklist: [internalServerError, forbiddenError, unauthorizedError, unknownError],
-  safeBaseError: BaseError,
-};
-
 type HttpErrorHandlerRequiredEvents = {
   path: string;
   httpMethod: string;
@@ -60,7 +52,8 @@ export const httpErrorHandler =
   async (event, ...args) =>
     handler(event, ...args).catch((error) => {
       const resolvedOptions = { ...defaultOptions, ...options };
-      const logger = event.deps?.logger ?? options.logger ?? console;
+      const logger =
+        options.logger === false ? noOpLogger : (event.deps?.logger ?? options.logger ?? console);
       logger.error(error);
 
       const { statusCode, message, ...errorProps } = getSafeResponse(resolvedOptions, error);
@@ -95,3 +88,19 @@ export const getSafeResponse = (options: ResolvedHttpErrorHandlerOptions, error?
   }
   return error;
 };
+
+const unknownError = {
+  statusCode: undefined,
+  alternativeMessage: 'InternalServerError',
+  alternativeStatusCode: 500,
+};
+const internalServerError = { statusCode: 500, alternativeMessage: 'InternalServerError' };
+const forbiddenError = { statusCode: 403, alternativeMessage: 'Forbidden' };
+const unauthorizedError = { statusCode: 401, alternativeMessage: 'Unauthorized' };
+
+const defaultOptions: ResolvedHttpErrorHandlerOptions = {
+  blacklist: [internalServerError, forbiddenError, unauthorizedError, unknownError],
+  safeBaseError: BaseError,
+};
+
+const noOpLogger = { error: () => null };
