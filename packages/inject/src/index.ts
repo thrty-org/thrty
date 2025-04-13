@@ -1,39 +1,33 @@
 import { Middleware } from '@thrty/core';
 
-export type LazyInject<TDeps> = <TTargetKey extends keyof TDeps>(
-  key: TTargetKey,
-) => TDeps[TTargetKey];
-export type LazyInjector<TDeps> = {
-  inject: LazyInject<TDeps>;
+export type Dependencies<T> = { deps: T };
+export type Providers<TContainer> = {
+  [K in keyof TContainer]: Factory<TContainer>;
 };
-export type Deps<T> = { deps: T };
-export type DepsFactories<T> = { [props: string]: (deps: T & LazyInjector<T>) => any };
-export type DepsOf<T extends DepsFactories<DepsOf<T>>> = {
+export type Factory<TContainer> = (container: TContainer) => any;
+export type Container<T extends Providers<Container<T>>> = {
   [P in keyof T]: ReturnType<T[P]>;
 };
 
-export interface Injector {
-  inject: <K extends keyof this>(id: K) => this[K];
-}
-
 export const inject =
-  <T extends object, D extends DepsFactories<DepsOf<D>>, R>(
-    depsFactories: D,
-  ): Middleware<T, Deps<DepsOf<D>> & T, R, R> =>
+  <T extends object, TProviders extends Providers<Container<TProviders>>, R>(
+    providers: TProviders,
+  ): Middleware<T, Dependencies<Container<TProviders>> & T, R, R> =>
   (handler) => {
-    let container: any;
+    let container: Container<TProviders>;
     return (event, ...args) => {
       if (!container) {
-        container = createContainer(depsFactories);
+        container = createContainer(providers);
       }
       return handler(Object.assign(event, { deps: container }), ...args);
     };
   };
 
-export const createContainer = <D extends DepsFactories<DepsOf<D>>>(factories: D): DepsOf<D> => {
+export const createContainer = <TProviders extends Providers<Container<TProviders>>>(
+  factories: TProviders,
+): Container<TProviders> => {
   const cache: { [key: string]: any } = {};
   const circularDepIndicator: { [key: string]: boolean } = {};
-  const inject = (id: string) => container[id];
   let depChainKeys: string[] = [];
   const container = new Proxy(factories, {
     get(target, key: string) {
@@ -46,11 +40,45 @@ export const createContainer = <D extends DepsFactories<DepsOf<D>>>(factories: D
           );
         }
         circularDepIndicator[key] = true;
-        cache[key] = factories[key](container as any);
+        cache[key] = factories[key as keyof TProviders](container);
         depChainKeys = [];
       }
       return cache[key];
     },
-  }) as DepsOf<D>;
+  }) as Container<TProviders>;
   return container;
 };
+
+export const createProviders = <TProviders extends Providers<Container<TProviders>>>(
+  factories: TProviders,
+): TProviders => factories;
+
+type CtorDeps<T extends Ctor, TDepsKeys extends string[]> = T extends new (
+  ...args: infer TArgs extends { [K in keyof TDepsKeys]: any }
+) => any
+  ? UnionToIntersection<
+      {
+        [Index in keyof TDepsKeys]: { [K in TDepsKeys[Index]]: TArgs[Index] };
+      }[number]
+    >
+  : never;
+
+export const fromClass =
+  <TCtor extends Ctor, TDepsKeys extends string[]>(ctor: TCtor, ...depsKeys: TDepsKeys) =>
+  (deps: CtorDeps<TCtor, TDepsKeys>) => {
+    return new ctor(
+      ...depsKeys.map((dep) => deps[dep as keyof typeof deps]),
+    ) as any as InstanceType<TCtor>;
+  };
+
+export type UnionToIntersection<U> = (U extends any ? (x: U) => void : never) extends (
+  x: infer I,
+) => void
+  ? I
+  : never;
+export type Ctor = new (...args: any[]) => any;
+export type InstanceType<T extends new (...args: any) => any> = T extends new (
+  ...args: any
+) => infer R
+  ? R
+  : any;
