@@ -16,7 +16,6 @@ beforeAll(() => {
       path: 'todos',
       domainNames: ['api.thrty.com'],
     },
-
     authorizers: {
       default: {
         type: 'REQUEST',

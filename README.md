@@ -66,7 +66,7 @@ it('should return created user', async () => {
     jsonBody: user,
   });
   
-  const { statusCode, body } = await handler.actual(eventMock);
+  const { statusCode, body } = await handler.actual(event);
   
   const expectedUser = { /*...*/ };
   expect(statusCode).toBe(201);
@@ -75,5 +75,17 @@ it('should return created user', async () => {
 ```
 This makes it easily possible to test the business code without retesting middleware-functionality again.
 
-## Documentation
-coming soon...
+## Middlewares
+- [@thrty/api](/packages/api/README.md)
+- [@thrty/api-cdk](/packages/api-cdk/README.md)
+- [@thrty/api-zod](/packages/api-zod/README.md)
+- [@thrty/cookie-parser](/packages/cookie-parser/README.md)
+- [@thrty/core](/packages/core/README.md)
+- [@thrty/cors](/packages/cors/README.md)
+- [@thrty/http-error-handler](/packages/http-error-handler/README.md)
+- [@thrty/http-errors](/packages/http-errors/README.md)
+- [@thrty/http-json-body-parser](/packages/http-json-body-parser/README.md)
+- [@thrty/http-json-body-serializer](/packages/http-json-body-serializer/README.md)
+- [@thrty/inject](/packages/inject/README.md)
+- [@thrty/testing](/packages/testing/README.md)
+- 

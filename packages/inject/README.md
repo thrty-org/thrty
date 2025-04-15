@@ -62,11 +62,30 @@ inject({
 })
 ```
 
-### Type safety
-If a dependency is missing or not configured correctly (e.g. typo), the 
-
 ### Testing
+```typescript
+// handler.spec.ts
+import { fromPartial, createMock, EventOf } from '@thrty/testing'
+import { handler } from './handler';
 
+const userService = createMock<UserService>();
+type Event = EventOf<typeof handler>;
+
+it('should return created user', async () => {
+    const user = { /*...*/ };
+    userService.createUser.mockResolvedValue(user);
+    const event = fromPartial<Event>({
+        deps: { userService },
+        jsonBody: user,
+    });
+
+    const { statusCode, body } = await handler.actual(event);
+
+    const expectedUser = { /*...*/ };
+    expect(statusCode).toBe(201);
+    expect(body).toEqual(expectedUser);
+});
+```
 
 
 ### Best practices
