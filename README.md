@@ -11,13 +11,13 @@
   <img src="https://github.com/thrty-org/thrty/actions/workflows/checks.yml/badge.svg">
 </p>
 
-## Installation
+### Installation
 
 ```shell script
 npm install @thrty/core
 ```
 
-## Getting started
+### Getting started
 
 ```typescript
 import { APIGatewayProxyHandler } from 'aws-lambda';
@@ -45,14 +45,14 @@ export const handler = compose(
 });
 ```
 
-## Testing
+### Testing
 
 The `compose`d handler function exposes a reference to the actual handler
 via the `actual` property:
 
 ```typescript
 // handler.spec.ts
-import { fromPartial, createMock } from '@thrty/testing'
+import { fromPartial, createMock, EventOf } from '@thrty/testing'
 import { handler } from './handler';
 
 const userService = createMock<UserService>();
