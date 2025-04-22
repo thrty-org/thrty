@@ -1,13 +1,12 @@
 import { SQSBatchResponse, SQSEvent, SQSRecord, SQSBatchItemFailure } from 'aws-lambda';
-import { Middleware } from '@thrty/core/src';
-import { TypeRef } from '../../packages/core/src/TypeRef';
+import { Middleware, TypeRef } from '@thrty/core';
 
 type ForeachRequiredEvent = SQSEvent & { deps?: { logger?: { error: (...args: any[]) => any } } };
 type ForeachNextEvent<TEvent extends ForeachRequiredEvent, TBody> = Omit<TEvent, 'Records'> & {
   record: Omit<SQSRecord, 'body'> & { body: TBody };
 };
-interface ForeachRecordOptions<TBody, TBatchItemFailures> {
-  bodyType: TypeRef<TBody>;
+interface ForeachRecordOptions<TBatchItemFailures, TBody = unknown> {
+  bodyType?: TypeRef<TBody>;
   batchItemFailures: TBatchItemFailures;
   sequential?: boolean;
 }
@@ -16,7 +15,7 @@ export const forEachSqsRecord =
   <TEvent extends ForeachRequiredEvent, TBody, TBatchItemFailures extends boolean>({
     batchItemFailures: useBatchItemFailures,
     sequential,
-  }: ForeachRecordOptions<TBody, TBatchItemFailures>): Middleware<
+  }: ForeachRecordOptions<TBatchItemFailures, TBody>): Middleware<
     TEvent,
     ForeachNextEvent<TEvent, TBody>,
     Promise<TBatchItemFailures extends true ? SQSBatchResponse : void>,

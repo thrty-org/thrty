@@ -1,9 +1,8 @@
-import { compose, types } from '@thrty/core/src';
+import { compose, types, of } from '@thrty/core';
+import { fromPartial } from '@thrty/testing';
+import { inject } from '@thrty/inject';
 import { SQSBatchResponse, SQSEvent, SQSRecord } from 'aws-lambda';
 import { forEachSqsRecord } from './index';
-import { of } from '../../packages/core/src/TypeRef';
-import { mock } from '../types/mock';
-import { inject } from '../../packages/inject/src';
 
 interface SomeMessageBody {
   id: string;
@@ -56,7 +55,7 @@ describe('given sequential is false or not set', () => {
       beforeEach(async () => {
         result = await handler({
           Records: [
-            mock<SQSRecord>({
+            fromPartial<SQSRecord>({
               messageId: 'MESSAGE_1',
               body: JSON.stringify({
                 id: 'MESSAGE_BODY_1',
@@ -80,7 +79,7 @@ describe('given sequential is false or not set', () => {
       beforeEach(async () => {
         result = await handler({
           Records: [
-            mock<SQSRecord>({
+            fromPartial<SQSRecord>({
               messageId: 'MESSAGE_1',
               body: JSON.stringify({
                 id: 'MESSAGE_BODY_1',
@@ -88,7 +87,7 @@ describe('given sequential is false or not set', () => {
                 shouldFail: true,
               } satisfies SomeMessageBody),
             }),
-            mock<SQSRecord>({
+            fromPartial<SQSRecord>({
               messageId: 'MESSAGE_2',
               body: JSON.stringify({
                 id: 'MESSAGE_BODY_2',
@@ -150,14 +149,14 @@ describe('given sequential is false or not set', () => {
       beforeEach(() => {
         promise = handler({
           Records: [
-            mock<SQSRecord>({
+            fromPartial<SQSRecord>({
               messageId: 'MESSAGE_1',
               body: JSON.stringify({
                 id: 'MESSAGE_BODY_1',
                 description: 'desc',
               } satisfies SomeMessageBody),
             }),
-            mock<SQSRecord>({
+            fromPartial<SQSRecord>({
               messageId: 'MESSAGE_2',
               body: JSON.stringify({
                 id: 'MESSAGE_BODY_2',
@@ -177,7 +176,7 @@ describe('given sequential is false or not set', () => {
       beforeEach(() => {
         promise = handler({
           Records: [
-            mock<SQSRecord>({
+            fromPartial<SQSRecord>({
               messageId: 'MESSAGE_1',
               body: JSON.stringify({
                 id: 'MESSAGE_BODY_1',
@@ -185,7 +184,7 @@ describe('given sequential is false or not set', () => {
                 shouldFail: true,
               } satisfies SomeMessageBody),
             }),
-            mock<SQSRecord>({
+            fromPartial<SQSRecord>({
               messageId: 'MESSAGE_2',
               body: JSON.stringify({
                 id: 'MESSAGE_BODY_2',
@@ -235,7 +234,7 @@ describe('given sequential is true', () => {
       beforeEach(async () => {
         result = await handler({
           Records: [
-            mock<SQSRecord>({
+            fromPartial<SQSRecord>({
               messageId: 'MESSAGE_1',
               body: JSON.stringify({
                 id: 'MESSAGE_BODY_1',
@@ -259,14 +258,14 @@ describe('given sequential is true', () => {
       beforeEach(async () => {
         result = await handler({
           Records: [
-            mock<SQSRecord>({
+            fromPartial<SQSRecord>({
               messageId: 'MESSAGE_1',
               body: JSON.stringify({
                 id: 'MESSAGE_BODY_1',
                 description: 'desc',
               } satisfies SomeMessageBody),
             }),
-            mock<SQSRecord>({
+            fromPartial<SQSRecord>({
               messageId: 'MESSAGE_2',
               body: JSON.stringify({
                 id: 'MESSAGE_BODY_2',
@@ -274,7 +273,7 @@ describe('given sequential is true', () => {
                 shouldFail: true,
               } satisfies SomeMessageBody),
             }),
-            mock<SQSRecord>({
+            fromPartial<SQSRecord>({
               messageId: 'MESSAGE_3',
               body: JSON.stringify({
                 id: 'MESSAGE_BODY_3',
@@ -326,14 +325,14 @@ describe('given sequential is true', () => {
       beforeEach(() => {
         promise = handler({
           Records: [
-            mock<SQSRecord>({
+            fromPartial<SQSRecord>({
               messageId: 'MESSAGE_1',
               body: JSON.stringify({
                 id: 'MESSAGE_BODY_1',
                 description: 'desc',
               } satisfies SomeMessageBody),
             }),
-            mock<SQSRecord>({
+            fromPartial<SQSRecord>({
               messageId: 'MESSAGE_2',
               body: JSON.stringify({
                 id: 'MESSAGE_BODY_2',
@@ -353,7 +352,7 @@ describe('given sequential is true', () => {
       beforeEach(() => {
         promise = handler({
           Records: [
-            mock<SQSRecord>({
+            fromPartial<SQSRecord>({
               messageId: 'MESSAGE_1',
               body: JSON.stringify({
                 id: 'MESSAGE_BODY_1',
@@ -361,7 +360,7 @@ describe('given sequential is true', () => {
                 shouldFail: true,
               } satisfies SomeMessageBody),
             }),
-            mock<SQSRecord>({
+            fromPartial<SQSRecord>({
               messageId: 'MESSAGE_2',
               body: JSON.stringify({
                 id: 'MESSAGE_BODY_2',
