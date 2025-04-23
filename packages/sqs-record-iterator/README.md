@@ -8,7 +8,7 @@
 <h4 align="center">A middleware to iterate over or batch process SQS records preventing boilerplate code in Lambda handlers</h4>
 
 <p align="center">
-<img src="https://img.shields.io/npm/v/@thrty/inject.svg">
+<img src="https://img.shields.io/npm/v/@thrty/sqs-record-iterator.svg">
   <img src="https://github.com/thrty-org/thrty/actions/workflows/checks.yml/badge.svg">
 </p>
 

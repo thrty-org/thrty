@@ -8,7 +8,7 @@
 <h4 align="center">A middleware for adding CORS headers to an API Gateway responses including OPTIONS requests</h4>
 
 <p align="center">
-<img src="https://img.shields.io/npm/v/@thrty/inject.svg">
+<img src="https://img.shields.io/npm/v/@thrty/cors.svg">
   <img src="https://github.com/thrty-org/thrty/actions/workflows/checks.yml/badge.svg">
 </p>
 
@@ -23,7 +23,6 @@ npm install @thrty/cors
 import { APIGatewayProxyHandler } from 'aws-lambda';
 import { compose, types } from '@thrty/core';
 import { handleCors } from '@thrty/cors';
-import { NotFoundError } from '@thrty/http-errors';
 import { httpErrorHandler } from '@thrty/http-error-handler';
 
 export const handler = compose(
@@ -31,12 +30,14 @@ export const handler = compose(
   inject({
     ...todoRepositoryProviders,
   }),
-  httpErrorHandler(),
   handleCors(),
+  httpErrorHandler(),
 )(async event => {
   /* ... */
 });
 ```
+
+> ⚠️ The middleware should be used before the `httpErrorHandler` middleware, so that CORS headers are also added in case of errors.
 
 ### Options
 The `handleCors` middleware accepts an options object with the following properties:
