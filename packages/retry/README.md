@@ -19,7 +19,7 @@ npm install @thrty/retry
 ```
 
 ### Usage
-Since the AWS Lambda service only allows 2 reties this middleware can be helpful to increase the number of retries and also
+Since the AWS Lambda service only allows 2 reties, this middleware can be helpful to increase the number of retries and also
 control on which errors to retry.
 
 ```typescript

@@ -27,9 +27,6 @@ import { httpErrorHandler } from '@thrty/http-error-handler';
 
 export const handler = compose(
   typesOf<APIGatewayProxyHandler>(),
-  inject({
-    ...todoRepositoryProviders,
-  }),
   handleCors(),
   httpErrorHandler(),
 )(async event => {
