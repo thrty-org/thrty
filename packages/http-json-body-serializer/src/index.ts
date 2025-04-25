@@ -13,6 +13,10 @@ export const serializeJson =
     const { body, ...rest } = await next(...args);
     return {
       ...rest,
+      headers: {
+        ...rest.headers,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(body),
     } satisfies APIGatewayProxyResult as unknown as R1;
   };

@@ -27,6 +27,12 @@ describe('given no body type is specified', () => {
   it('should return serialized response body', () => {
     expect(result.body).toEqual(JSON.stringify({ test: '1' }));
   });
+
+  it('should return content-type header', () => {
+    expect(result.headers).toEqual({
+      'Content-Type': 'application/json',
+    });
+  });
 });
 
 describe('given body type is specified', () => {
@@ -61,6 +67,12 @@ describe('given body type is specified', () => {
     expect(result.body).toEqual(
       JSON.stringify({ id: 'MESSAGE_1', description: 'MESSAGE_DESCRIPTION_1' }),
     );
+  });
+
+  it('should return content-type header', () => {
+    expect(result.headers).toEqual({
+      'Content-Type': 'application/json',
+    });
   });
 });
 
