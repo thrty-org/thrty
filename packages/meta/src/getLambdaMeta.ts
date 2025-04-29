@@ -44,7 +44,7 @@ export const getLambdaMeta = (
     const [, result] = child.stdout?.split(OUTPUT_DELEMITER);
     metaList = JSON.parse(result);
   } else {
-    metaList = glob.sync(pattern).map((path) => {
+    metaList = glob.sync(pattern, { absolute: true }).map((path) => {
       const meta = require(path)[handlerExportName]['meta'] ?? {};
       return {
         path,
