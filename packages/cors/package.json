@@ -1,6 +1,6 @@
 {
   "name": "@thrty/cors",
-  "version": "3.0.0-alpha.6",
+  "version": "3.0.0-alpha.7",
   "author": "Robin Baum",
   "license": "ISC",
   "description": "Middleware for adding CORS headers to an API Gateway responses",
@@ -37,8 +37,8 @@
     "@types/aws-lambda": "^8.10.148"
   },
   "devDependencies": {
-    "@thrty/http-error-handler": "^3.0.0-alpha.6",
-    "@thrty/http-errors": "^3.0.0-alpha.6"
+    "@thrty/http-error-handler": "^3.0.0-alpha.7",
+    "@thrty/http-errors": "^3.0.0-alpha.7"
   },
   "gitHead": "6273aa89998962b6d65ad1d90613a427c63dc0a9"
 }

@@ -1,6 +1,6 @@
 {
   "name": "@thrty/http-json-body-serializer",
-  "version": "3.0.0-alpha.6",
+  "version": "3.0.0-alpha.7",
   "author": "Robin Baum",
   "license": "ISC",
   "description": "Middleware for serializing JSON response bodies in API Gateway requests",
