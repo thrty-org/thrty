@@ -1,6 +1,6 @@
 {
   "name": "@thrty/http-security-headers",
-  "version": "3.0.0-alpha.8",
+  "version": "3.0.0-alpha.9",
   "author": "Robin Baum",
   "license": "ISC",
   "description": "Middleware for adding security headers to HTTP responses",
@@ -36,5 +36,5 @@
     "@thrty/core": "^3.0.0-alpha.0",
     "@types/aws-lambda": "^8.10.148"
   },
-  "gitHead": "86e4eb17ab5e7126a0a758b422decb9e4c497542"
+  "gitHead": "a4e001787c825e8b1055bb17628167b05ef3bd8e"
 }
