@@ -1,6 +1,6 @@
 {
   "name": "@thrty/cli",
-  "version": "3.0.0-alpha.9",
+  "version": "3.0.0-alpha.10",
   "author": "Robin Baum",
   "license": "ISC",
   "description": "CLI for thrty",
@@ -33,5 +33,5 @@
     "@thrty/api-cdk": "^3.0.0-alpha.4",
     "@thrty/meta": "^3.0.0-alpha.4"
   },
-  "gitHead": "a4e001787c825e8b1055bb17628167b05ef3bd8e"
+  "gitHead": "fa43fab67a348be05c2f09b355b36f4bd9d49769"
 }
