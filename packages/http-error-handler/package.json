@@ -1,6 +1,6 @@
 {
   "name": "@thrty/http-error-handler",
-  "version": "3.0.0-alpha.7",
+  "version": "3.0.0-alpha.8",
   "author": "Robin Baum",
   "license": "ISC",
   "description": "Middleware for handling HTTP errors",
@@ -38,5 +38,5 @@
     "@types/aws-lambda": "^8.10.148",
     "aws-lambda": "^1.0.7"
   },
-  "gitHead": "6273aa89998962b6d65ad1d90613a427c63dc0a9"
+  "gitHead": "86e4eb17ab5e7126a0a758b422decb9e4c497542"
 }

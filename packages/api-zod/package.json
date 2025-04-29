@@ -1,6 +1,6 @@
 {
   "name": "@thrty/api-zod",
-  "version": "3.0.0-alpha.7",
+  "version": "3.0.0-alpha.8",
   "author": "Robin Baum",
   "license": "ISC",
   "description": "Middleware for validation and metadata describing request body, response body and query parameters",
@@ -39,5 +39,5 @@
     "aws-lambda": "^1.0.0",
     "zod": "^3.24.2"
   },
-  "gitHead": "6273aa89998962b6d65ad1d90613a427c63dc0a9"
+  "gitHead": "86e4eb17ab5e7126a0a758b422decb9e4c497542"
 }
