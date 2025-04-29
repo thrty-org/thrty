@@ -5,11 +5,12 @@
   <br>
 </h1>
 
-<h4 align="center">
-    Core framework of thrty, provides type-safe compose function and utility types
-    <br>
+<div align="center">
+    <h4 style="margin-bottom: 0">
+        Core framework of thrty, provides type-safe compose function and utility types
+    </h4>
     <span style="font-weight: lighter">Zero dependency and light weight framework (~353 bytes)</span>
-</h4>
+</div>
 
 <p align="center">
     <img src="https://img.shields.io/npm/v/@thrty/api.svg">
@@ -23,8 +24,6 @@ npm install @thrty/core
 ```
 
 ### Usage
-
-#### `typesOf`
 
 ```typescript
 import { APIGatewayProxyHandler } from 'aws-lambda';
@@ -52,20 +51,24 @@ export const handler = compose(
 });
 ```
 
-#### `types`
-For custom event and return types:
+#### Input and output types
+
+###### `typesOf`
+Use `typesOf` to infer the input and output types of the handler types provided by `aws-lambda` package.
 ```typescript
-import { compose, types } from '@thrty/core';
+import { APIGatewayProxyHandler } from 'aws-lambda';
 
 export const handler = compose(
-  types<{}, Promise<void>(),
-  inject({
-    userService: userServiceFactory,
-  }),
-)(async event => {
-  const { userService } = event.deps;
-  const user = await userService.createUser(event.jsonBody);
-});
+  typesOf<APIGatewayProxyHandler>(),
+)(async event => {});
+```
+
+##### `types`
+For custom event and return types use `types`
+```typescript
+export const handler = compose(
+  types<InputEvent, Promise<OutputResult>(),
+)(async event => {});
 ```
 
 ### Testing
