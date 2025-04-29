@@ -38,5 +38,6 @@
   "peerDependencies": {
     "@thrty/core": "^3.0.0-alpha.0",
     "@types/aws-lambda": "^8.10.148"
-  }
+  },
+  "gitHead": "6273aa89998962b6d65ad1d90613a427c63dc0a9"
 }

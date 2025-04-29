@@ -29,5 +29,6 @@
   "dependencies": {
     "glob": "^11.0.1",
     "tsx": "^4.19.3"
-  }
+  },
+  "gitHead": "6273aa89998962b6d65ad1d90613a427c63dc0a9"
 }

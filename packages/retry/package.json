@@ -39,5 +39,6 @@
   "devDependencies": {
     "@thrty/http-error-handler": "^3.0.0-alpha.6",
     "@thrty/http-errors": "^3.0.0-alpha.6"
-  }
+  },
+  "gitHead": "6273aa89998962b6d65ad1d90613a427c63dc0a9"
 }
