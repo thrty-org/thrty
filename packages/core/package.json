@@ -1,6 +1,6 @@
 {
   "name": "@thrty/core",
-  "version": "3.0.0-alpha.10",
+  "version": "3.0.0-alpha.11",
   "author": "Robin Baum",
   "license": "ISC",
   "description": "Core framework of thrty, provides type-safe compose function and utility types",
