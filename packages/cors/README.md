@@ -34,7 +34,8 @@ export const handler = compose(
 });
 ```
 
-> ⚠️ The middleware should be used before the `httpErrorHandler` middleware, so that CORS headers are also added in case of errors.
+> [!IMPORTANT]
+> The middleware should be used before the `httpErrorHandler` middleware, so that CORS headers are also added in case of errors.
 
 ### Options
 The `handleCors` middleware accepts an options object with the following properties:

@@ -34,7 +34,8 @@ export const handler = compose(
 });
 ```
 
-> ⚠️ The middleware should be used before the `httpErrorHandler` middleware, so that headers are also added in case of errors.
+> [!IMPORTANT]
+> The middleware should be used before the `httpErrorHandler` middleware, so that headers are also added in case of errors.
 
 ### Options
 The `addSecurityHeaders` middleware accepts an options object with the following properties:

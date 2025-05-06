@@ -39,7 +39,8 @@ export const handler = compose(
   /* ... */
 });
 ```
-> ⚠️ The middleware should be used after the `httpErrorHandler` middleware, so that it's able to receive unhandled errors and therefore know whether to retry or not.
+> [!IMPORTANT]
+> The middleware should be used after the `httpErrorHandler` middleware, so that it's able to receive unhandled errors and therefore know whether to retry or not.
 
 ### Options
 The `retry` middleware accepts an options object with the following properties:
