@@ -7,13 +7,8 @@ export interface AuthorizerMeta {
 export const authorizer = <TEvent extends APIGatewayProxyEvent, R>(
   authorizerName: string,
 ): Middleware<TEvent, TEvent, R, R> =>
-  Object.assign(
-    (next: any) =>
-      (...args: any[]) =>
-        next(...args),
-    {
-      meta: {
-        authorizerName,
-      } satisfies AuthorizerMeta,
-    },
-  );
+  Object.assign((next: any) => next, {
+    meta: {
+      authorizerName,
+    } satisfies AuthorizerMeta,
+  });
