@@ -74,5 +74,5 @@ ${metaList
   .join('\n')}
 });
   `.replaceAll('\n\n', '\n');
-  writeFileSync(outPath, apiFactory.replace(/^\s*\n/gm, ''));
+  writeFileSync(outPath, apiFactory.trim().replace(/^\s*\n/gm, ''));
 };
