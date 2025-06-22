@@ -24,6 +24,9 @@ export const createApiClient = async (options: CreateApiClientOptions) => {
   const modelFactory: ModelFactory = (await import(`./models/${options.models}.ts`)).default;
   const { pattern, exportName, outPath, ...rest } = options;
   const metaList = getLambdaMeta(pattern, rest).filter(isApiLambdaMeta);
+  if (!metaList.length) {
+    console.warn('No API Lambda meta found for the given pattern:', pattern);
+  }
   const modelsMap = modelFactory(metaList, options);
   const apiFactory = `${httpClient.createGlobals()}
 ${[...modelsMap.entries()]

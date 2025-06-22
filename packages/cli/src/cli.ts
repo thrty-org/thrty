@@ -20,7 +20,7 @@ program
       ...options,
       exportName: `${options.name}Factory`,
       outPath: options.outPath ?? join(process.cwd(), `${options.name}Factory.ts`),
-      pattern: glob,
+      pattern: join(process.cwd(), glob),
     });
   });
 
@@ -44,7 +44,7 @@ program
       packageName,
       exportName: `${options.name}Factory`,
       outDir: options.outDir ?? join(process.cwd(), options.name),
-      pattern: glob,
+      pattern: join(process.cwd(), glob),
     });
   });
 
