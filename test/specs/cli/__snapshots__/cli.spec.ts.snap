@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`thrty create-api-client --httpClient=axios should create api client 1`] = `
+"({ httpClient }) => ({
+    async patchTodo(todoId, data, options) {
+        const path = '/todos/{todoId}'.replace('{todoId}', encodeURIComponent(String(todoId)));
+        return httpClient(path, {
+            method: 'patch',
+            data,
+            ...options,
+        });
+    },
+    async getTodos(options) {
+        const path = '/todos';
+        return httpClient(path, {
+            method: 'get',
+            ...options,
+        });
+    },
+    async createTodo(data, options) {
+        const path = '/todos';
+        return httpClient(path, {
+            method: 'post',
+            data,
+            ...options,
+        });
+    },
+})"
+`;
+
+exports[`thrty create-api-client --httpClient=fetch should create api client 1`] = `
+"({ baseUrl, requestInterceptor }) => ({
+    async patchTodo(todoId, data, options) {
+        const path = '/todos/{todoId}'.replace('{todoId}', encodeURIComponent(String(todoId)));
+        const request = { data: data, method: 'patch', baseUrl: baseUrl, path: path };
+        return fetch(request.baseUrl + request.path, { ...request, ...(await requestInterceptor?.(request)), ...options }).then(async (res) => ({ data: await res.json(), ...res }));
+    },
+    async getTodos(options) {
+        const path = '/todos';
+        const request = { method: 'get', baseUrl: baseUrl, path: path };
+        return fetch(request.baseUrl + request.path, { ...request, ...(await requestInterceptor?.(request)), ...options }).then(async (res) => ({ data: await res.json(), ...res }));
+    },
+    async createTodo(data, options) {
+        const path = '/todos';
+        const request = { data: data, method: 'post', baseUrl: baseUrl, path: path };
+        return fetch(request.baseUrl + request.path, { ...request, ...(await requestInterceptor?.(request)), ...options }).then(async (res) => ({ data: await res.json(), ...res }));
+    },
+})"
+`;

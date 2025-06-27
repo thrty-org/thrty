@@ -18,7 +18,7 @@
 - [@thrty/api](/packages/api/README.md)
 - [@thrty/api-cdk](/packages/api-cdk/README.md)
 - [@thrty/api-zod](/packages/api-zod/README.md)
-- [@thrty/cli](/packages/cli/README.md) (work in progress)
+- [@thrty/cli](/packages/cli/README.md)
 - [@thrty/cookie-parser](/packages/cookie-parser/README.md)
 - [@thrty/cors](/packages/cors/README.md)
 - [@thrty/http-error-handler](/packages/http-error-handler/README.md)
