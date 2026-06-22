@@ -51,15 +51,15 @@ it('should provide actual handler reference via "actual" property', async () => 
   expect(handler.actual).toBe(actualHandler);
 });
 
-it('should not provide actual handler reference via "actual" property in case of 1 middleware', async () => {
+it('should provide actual handler reference via "actual" property when 1 middleware is composed', async () => {
   const middleware =
     (actual: any) =>
     (...args: any[]) =>
       actual(...args);
   const actualHandler = async () => {};
-  const handler = compose(middleware)(actualHandler) as any as { actual: undefined };
+  const handler = compose(middleware)(actualHandler);
 
-  expect(handler['actual']).toBe(undefined);
+  expect(handler.actual).toBe(actualHandler);
 });
 
 it('should be able to enhance events through middlewares', async () => {

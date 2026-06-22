@@ -9,7 +9,7 @@
     <h4 style="margin-bottom: 0">
         Core framework of thrty, provides type-safe compose function and utility types
     </h4>
-    <span style="font-weight: lighter">Zero dependency and light weight framework (~353 bytes)</span>
+    <span style="font-weight: lighter">Zero dependency and light weight framework (~383 bytes)</span>
 </div>
 
 <p align="center">

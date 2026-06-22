@@ -287,12 +287,11 @@ export function compose<E1, E2, E3, R1, R2, R3>(
   f: Middleware<E1, E2, R1, R2>,
   g: Middleware<E2, E3, R2, R3>,
 ): Middleware<E1, E3, R1, R3, { actual: Next<E3, R3>; meta?: unknown }>;
-// TODO Currently there is no 'actual' reference if 1 middleware is passed
-// This is because of the callback passed to 'reduce' only gets called if
-// more than 1 entry (in this case function) is set in the corresponding array
-// -> Anyway: This should be fixed in the future
-export function compose<E1, E2, R1, R2>(f: Middleware<E1, E2, R1, R2>): Middleware<E1, E2, R1, R2>;
+export function compose<E1, E2, R1, R2>(
+  f: Middleware<E1, E2, R1, R2>,
+): Middleware<E1, E2, R1, R2, { actual: Next<E2, R2>; meta?: unknown }>;
 export function compose(...fns: any[]) {
+  if (fns.length === 1) fns.unshift((n: any) => n);
   return fns.reduce((f, g) =>
     Object.assign(
       (next: any) => Object.assign(f(g(next)), { actual: next, meta: { ...f.meta, ...g.meta } }),
