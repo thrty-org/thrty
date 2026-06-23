@@ -44,8 +44,8 @@ export const handler = compose(
     createdAt: z.string(),
     updatedAt: z.string(),
   })),
-)(async event => {
-  const { todoRepository } = event.deps;
+)(async (event, context) => {
+  const { todoRepository } = context.deps;
   const todo = await todoRepository.findById(event.routeParams.todoId);
 
   if (!todo) {

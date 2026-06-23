@@ -41,8 +41,8 @@ export const handler = compose(
   httpErrorHandler(),
   parseJson(),
   serializeJson(),
-)(async event => {
-  const { userService } = event.deps;
+)(async (event, context) => {
+  const { userService } = context.deps;
   const user = await userService.createUser(event.jsonBody);
   return {
     statusCode: 201,
@@ -78,22 +78,25 @@ via the `actual` property:
 
 ```typescript
 // handler.spec.ts
-import { fromPartial, createMock, EventOf } from '@thrty/testing'
+import { fromPartial, createMock, EventOf, ContextOf } from '@thrty/testing'
 import { handler } from './handler';
 
 const userService = createMock<UserService>();
 type Event = EventOf<typeof handler>;
+type Context = ContextOf<typeof handler>;
 
 it('should return created user', async () => {
   const user = { /*...*/ };
   userService.createUser.mockResolvedValue(user);
   const event = fromPartial<Event>({
-    deps: { userService },
     jsonBody: user,
   });
-  
-  const { statusCode, body } = await handler.actual(event);
-  
+  const context = fromPartial<Context>({
+    deps: { userService },
+  });
+
+  const { statusCode, body } = await handler.actual(event, context);
+
   const expectedUser = { /*...*/ };
   expect(statusCode).toBe(201);
   expect(body).toEqual(expectedUser);

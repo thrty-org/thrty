@@ -30,11 +30,13 @@ export const handler = compose(
     userRepository: userRepositoryFactory,
     userService: userServiceFactory,
   }),
-)(async event => {
-  const { userService } = event.deps;
+)(async (event, context) => {
+  const { userService } = context.deps;
   const user = await userService.createUser(event.jsonBody);
 });
 ```
+
+`inject` attaches the resolved container to **`context.deps`** (the Lambda handler's second argument), not to the event. This keeps `event` free for data-transforming middlewares (parsers, validators) that may replace it.
 
 The dependency injection container makes use of factory functions. Dependencies will be resolved by the name of the key
 in DI container.
@@ -65,21 +67,24 @@ inject({
 ### Testing
 ```typescript
 // handler.spec.ts
-import { fromPartial, createMock, EventOf } from '@thrty/testing'
+import { fromPartial, createMock, EventOf, ContextOf } from '@thrty/testing'
 import { handler } from './handler';
 
 const userService = createMock<UserService>();
 type Event = EventOf<typeof handler>;
+type Context = ContextOf<typeof handler>;
 
 it('should return created user', async () => {
     const user = { /*...*/ };
     userService.createUser.mockResolvedValue(user);
     const event = fromPartial<Event>({
-        deps: { userService },
         jsonBody: user,
     });
+    const context = fromPartial<Context>({
+        deps: { userService },
+    });
 
-    const { statusCode, body } = await handler.actual(event);
+    const { statusCode, body } = await handler.actual(event, context);
 
     const expectedUser = { /*...*/ };
     expect(statusCode).toBe(201);
