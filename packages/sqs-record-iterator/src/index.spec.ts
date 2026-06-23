@@ -201,6 +201,77 @@ describe('given sequential is false or not set', () => {
     });
   });
 });
+describe('given raw is true', () => {
+  const createHandler = () => {
+    const seenBodies: unknown[] = [];
+    const handler = compose(
+      types<SQSEvent, Promise<void>>(),
+      forEachSqsRecord({
+        raw: true,
+        batchItemFailures: false,
+      }),
+    )(async (event) => {
+      seenBodies.push(event.record.body);
+    });
+    return { handler, seenBodies };
+  };
+
+  describe('and records contain JSON-looking strings', () => {
+    let seenBodies: unknown[];
+
+    beforeEach(async () => {
+      const ctx = createHandler();
+      seenBodies = ctx.seenBodies;
+      await ctx.handler(...args<SQSEvent>({
+        Records: [
+          fromPartial<SQSRecord>({
+            messageId: 'MESSAGE_1',
+            body: '{"id":"MESSAGE_BODY_1"}',
+          }),
+        ],
+      }));
+    });
+
+    it('should pass the body through as a string', () => {
+      expect(seenBodies).toEqual(['{"id":"MESSAGE_BODY_1"}']);
+    });
+  });
+
+  describe('and a record contains non-JSON content', () => {
+    let seenBodies: unknown[];
+    let promise: Promise<unknown>;
+
+    beforeEach(() => {
+      const ctx = createHandler();
+      seenBodies = ctx.seenBodies;
+      promise = ctx.handler(...args<SQSEvent>({
+        Records: [
+          fromPartial<SQSRecord>({
+            messageId: 'MESSAGE_1',
+            body: 'plain text — not JSON',
+          }),
+        ],
+      }));
+    });
+
+    it('should not throw and should pass the body through unchanged', async () => {
+      await expect(promise).resolves.toBeUndefined();
+      expect(seenBodies).toEqual(['plain text — not JSON']);
+    });
+  });
+
+  describe('type-level', () => {
+    it('infers body as string when raw is true', () => {
+      compose(
+        types<SQSEvent, Promise<void>>(),
+        forEachSqsRecord({ raw: true, batchItemFailures: false }),
+      )(async (event) => {
+        const _body: string = event.record.body;
+      });
+    });
+  });
+});
+
 describe('given sequential is true', () => {
   describe('and batchItemFailures are expected', () => {
     let logError: jest.Mock;

@@ -33,9 +33,10 @@ export const responseBody = <
         const { body: bodyResult, ...rest } = await next(...args);
 
         if (validate) {
-          const res = await body.safeParseAsync(bodyResult);
-          if (!res.success) {
-            throw Object.assign(new Error('Invalid response body'), { issues: res.error.issues });
+          let result = body['~standard'].validate(bodyResult);
+          if (result instanceof Promise) result = await result;
+          if (result.issues) {
+            throw Object.assign(new Error('Invalid response body'), { issues: result.issues });
           }
         }
         return {

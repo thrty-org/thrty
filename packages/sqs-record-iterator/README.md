@@ -19,10 +19,16 @@ npm install @thrty/sqs-record-iterator
 ```
 
 ### Usage
-Consider the following setup not using that middleware:
+
+Consider the following setup not using that middleware. The handler has to iterate the batch, parse and validate each record body, and translate failures into `batchItemFailures` by hand:
+
 ```ts
-type SomeMesssage = {id: string; text: string};
+import { z } from 'zod';
+
+const SomeMessage = z.object({ id: z.string(), text: z.string() });
+type SomeMessage = z.infer<typeof SomeMessage>;
 ```
+
 ```ts
 const handler = compose(
   types<SQSEvent, Promise<SQSBatchResponse>>(),
@@ -32,7 +38,7 @@ const handler = compose(
       await Promise.all(
         event.Records.map((record) => {
           try {
-            const message: SomeMessage = JSON.parse(record.body);
+            const message: SomeMessage = SomeMessage.parse(JSON.parse(record.body));
             // process message
           } catch (e) {
             return {
@@ -45,17 +51,56 @@ const handler = compose(
   };
 });
 ```
-You have to do a lot of boilerplate code, which makes the actual business code of processing one message hard to read. 
-`forEachSqsRecord` lets you process one message without any of that boilerplate:
+
+That's a lot of plumbing for what should be "for each message, do this." `forEachSqsRecord` combined with [`@thrty/validator`](../validator/README.md) lets you express the same thing as a chain — iteration, JSON parsing, and schema validation are all middleware:
+
+```ts
+import { compose, types } from '@thrty/core';
+import { forEachSqsRecord } from '@thrty/sqs-record-iterator';
+import { validate } from '@thrty/validator';
+import { z } from 'zod';
+
+const SomeMessage = z.object({ id: z.string(), text: z.string() });
+
+const handler = compose(
+  types<SQSEvent, Promise<SQSBatchResponse>>(),
+  forEachSqsRecord({ batchItemFailures: true }),
+  validate(SomeMessage, 'record.body'),
+)(async (event) => {
+  // `event.record.body` is typed as { id: string; text: string } AND verified at runtime
+});
+```
+
+Pair this with [`@thrty/error-handler`](../error-handler/README.md) (registered earlier in the chain) if you want validation failures to be acknowledged rather than retried — the iterator's `batchItemFailures` then only catches unexpected errors.
+
+### Skipping validation
+
+If the producer is fully trusted and you only need a type hint, use `bodyType` to assert the body's shape without a runtime check:
+
 ```ts
 const handler = compose(
   types<SQSEvent, Promise<SQSBatchResponse>>(),
   forEachSqsRecord({
     batchItemFailures: true,
     bodyType: of<SomeMessage>,
-  })
+  }),
 )(async (event) => {
   const message = event.record.body;
   // process message
 });
+```
+
+`bodyType` is a TypeScript-only assertion — the body is parsed with `JSON.parse` and trusted to match. If a producer ever sends something else, the lie surfaces inside your business code, which is why pairing with `validate` is the recommended default.
+
+### Non-JSON payloads
+
+If your records aren't JSON (plain text, base64-encoded binary, Avro, protobuf, ...), set `raw: true` to skip the default `JSON.parse` and receive the body as a `string`. You can then do your own decoding inside `validate`'s `select`:
+
+```ts
+forEachSqsRecord({ raw: true, batchItemFailures: true }),
+validate({
+  schema: SomeMessage,
+  select: (event) => decodeAvro(event.record.body),
+  path: 'record.body',
+}),
 ```

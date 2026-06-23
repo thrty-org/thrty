@@ -3,5 +3,4 @@ import defaultOptions from '../../tsup.options';
 
 export default defineConfig({
   ...defaultOptions,
-  noExternal: ['@thrty/validator'],
 });
