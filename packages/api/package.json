@@ -25,7 +25,8 @@
   },
   "scripts": {
     "build": "tsup",
-    "test": "jest"
+    "test": "jest",
+    "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
     "@thrty/core": "^3.0.0-alpha.0",

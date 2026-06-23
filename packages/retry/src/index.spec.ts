@@ -1,4 +1,5 @@
 import { compose, types } from '@thrty/core';
+import { args } from '@thrty/testing';
 import { retry } from './index';
 import { NotFoundError } from '@thrty/http-errors';
 
@@ -19,7 +20,7 @@ describe('default', () => {
     beforeEach(async () => {
       actual.mockResolvedValue({ result: 'ok' });
 
-      result = await handler({});
+      result = await handler(...args<{}>({}));
     });
 
     it('should call the actual handler once', async () => {
@@ -36,7 +37,7 @@ describe('default', () => {
   describe('given actual handler fails once', () => {
     beforeEach(async () => {
       actual.mockRejectedValueOnce(new Error('Test error'));
-      await handler({});
+      await handler(...args<{}>({}));
     });
 
     it('should retry the actual handler once', async () => {
@@ -48,7 +49,7 @@ describe('default', () => {
     let result: Error;
     beforeEach(async () => {
       actual.mockRejectedValue(new Error('Test error'));
-      result = await handler({}).catch((e) => e);
+      result = await handler(...args<{}>({})).catch((e) => e);
     });
 
     it('should retry the actual handler max-retries times', async () => {
@@ -70,7 +71,7 @@ describe('retryOn=[NotFoundError]', () => {
   describe('given actual handler fails with NotFoundError', () => {
     beforeEach(async () => {
       actual.mockRejectedValueOnce(new NotFoundError('Test error'));
-      await handler({}).catch((e) => e);
+      await handler(...args<{}>({})).catch((e) => e);
     });
 
     it('should retry the actual handler once', async () => {
@@ -81,7 +82,7 @@ describe('retryOn=[NotFoundError]', () => {
   describe('given actual handler fails with another error', () => {
     beforeEach(async () => {
       actual.mockRejectedValueOnce(new Error('Test error'));
-      await handler({}).catch((e) => e);
+      await handler(...args<{}>({})).catch((e) => e);
     });
 
     it('should not retry the actual handler', async () => {
@@ -98,7 +99,7 @@ describe('retryOn=callback', () => {
   describe('given actual handler fails with NotFoundError', () => {
     beforeEach(async () => {
       actual.mockRejectedValueOnce(new NotFoundError('Test error'));
-      await handler({}).catch((e) => e);
+      await handler(...args<{}>({})).catch((e) => e);
     });
 
     it('should retry the actual handler once', async () => {
@@ -109,7 +110,7 @@ describe('retryOn=callback', () => {
   describe('given actual handler fails with another error', () => {
     beforeEach(async () => {
       actual.mockRejectedValueOnce(new Error('Test error'));
-      await handler({}).catch((e) => e);
+      await handler(...args<{}>({})).catch((e) => e);
     });
 
     it('should not retry the actual handler', async () => {

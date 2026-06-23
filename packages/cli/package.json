@@ -27,7 +27,8 @@
     }
   },
   "scripts": {
-    "build": "tsup"
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "zod-to-ts": "^1.2.0",

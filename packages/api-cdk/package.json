@@ -24,7 +24,8 @@
     }
   },
   "scripts": {
-    "build": "tsup"
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
     "@thrty/api": "^3.0.0-alpha.4",
