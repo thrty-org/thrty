@@ -1,13 +1,13 @@
 {
-  "name": "@thrty/http-error-handler",
+  "name": "@thrty/error-handler",
   "version": "3.0.0-alpha.11",
   "author": "Robin Baum",
   "license": "ISC",
-  "description": "Middleware for handling HTTP errors",
+  "description": "Generic catch-and-transform error middleware",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/thrty-org/thrty.git",
-    "directory": "packages/http-error-handler"
+    "directory": "packages/error-handler"
   },
   "type": "module",
   "main": "./dist/index.cjs",
@@ -34,13 +34,6 @@
     }
   },
   "peerDependencies": {
-    "@thrty/core": "^3.0.0-alpha.0",
-    "@thrty/http-errors": "^3.0.0-alpha.0",
-    "@types/aws-lambda": "^8.10.148",
-    "aws-lambda": "^1.0.7"
-  },
-  "devDependencies": {
-    "@thrty/error-handler": "^3.0.0-alpha.11"
-  },
-  "gitHead": "fa43fab67a348be05c2f09b355b36f4bd9d49769"
+    "@thrty/core": "^3.0.0-alpha.0"
+  }
 }
