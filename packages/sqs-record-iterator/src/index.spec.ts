@@ -1,5 +1,5 @@
 import { compose, types, of } from '@thrty/core';
-import { fromPartial } from '@thrty/testing';
+import { args, fromPartial } from '@thrty/testing';
 import { inject } from '@thrty/inject';
 import { SQSBatchResponse, SQSEvent, SQSRecord } from 'aws-lambda';
 import { forEachSqsRecord } from './index';
@@ -53,7 +53,7 @@ describe('given sequential is false or not set', () => {
 
     describe('and all messages can be successfully processed', () => {
       beforeEach(async () => {
-        result = await handler({
+        result = await handler(...args<SQSEvent>({
           Records: [
             fromPartial<SQSRecord>({
               messageId: 'MESSAGE_1',
@@ -63,7 +63,7 @@ describe('given sequential is false or not set', () => {
               } satisfies SomeMessageBody),
             }),
           ],
-        });
+        }));
       });
 
       it('should return SQSBatchResponse with empty failures', async () => {
@@ -77,7 +77,7 @@ describe('given sequential is false or not set', () => {
 
     describe('and 1 message fails to be processed', () => {
       beforeEach(async () => {
-        result = await handler({
+        result = await handler(...args<SQSEvent>({
           Records: [
             fromPartial<SQSRecord>({
               messageId: 'MESSAGE_1',
@@ -95,7 +95,7 @@ describe('given sequential is false or not set', () => {
               } satisfies SomeMessageBody),
             }),
           ],
-        });
+        }));
       });
 
       it('should return SQSBatchResponse with 1 failure', async () => {
@@ -147,7 +147,7 @@ describe('given sequential is false or not set', () => {
 
     describe('and all messages can be successfully processed', () => {
       beforeEach(() => {
-        promise = handler({
+        promise = handler(...args<SQSEvent>({
           Records: [
             fromPartial<SQSRecord>({
               messageId: 'MESSAGE_1',
@@ -164,7 +164,7 @@ describe('given sequential is false or not set', () => {
               } satisfies SomeMessageBody),
             }),
           ],
-        });
+        }));
       });
 
       it('should not throw', async () => {
@@ -174,7 +174,7 @@ describe('given sequential is false or not set', () => {
 
     describe('and 1 message fails to be processed', () => {
       beforeEach(() => {
-        promise = handler({
+        promise = handler(...args<SQSEvent>({
           Records: [
             fromPartial<SQSRecord>({
               messageId: 'MESSAGE_1',
@@ -192,7 +192,7 @@ describe('given sequential is false or not set', () => {
               } satisfies SomeMessageBody),
             }),
           ],
-        });
+        }));
       });
 
       it('should throw', async () => {
@@ -232,7 +232,7 @@ describe('given sequential is true', () => {
 
     describe('and all messages can be successfully processed', () => {
       beforeEach(async () => {
-        result = await handler({
+        result = await handler(...args<SQSEvent>({
           Records: [
             fromPartial<SQSRecord>({
               messageId: 'MESSAGE_1',
@@ -242,7 +242,7 @@ describe('given sequential is true', () => {
               } satisfies SomeMessageBody),
             }),
           ],
-        });
+        }));
       });
 
       it('should return SQSBatchResponse with empty failures', async () => {
@@ -256,7 +256,7 @@ describe('given sequential is true', () => {
 
     describe('and 1 message fails to be processed', () => {
       beforeEach(async () => {
-        result = await handler({
+        result = await handler(...args<SQSEvent>({
           Records: [
             fromPartial<SQSRecord>({
               messageId: 'MESSAGE_1',
@@ -281,7 +281,7 @@ describe('given sequential is true', () => {
               } satisfies SomeMessageBody),
             }),
           ],
-        });
+        }));
       });
 
       it('should return SQSBatchResponse with all messages after failed processed record', async () => {
@@ -323,7 +323,7 @@ describe('given sequential is true', () => {
 
     describe('and all messages can be successfully processed', () => {
       beforeEach(() => {
-        promise = handler({
+        promise = handler(...args<SQSEvent>({
           Records: [
             fromPartial<SQSRecord>({
               messageId: 'MESSAGE_1',
@@ -340,7 +340,7 @@ describe('given sequential is true', () => {
               } satisfies SomeMessageBody),
             }),
           ],
-        });
+        }));
       });
 
       it('should not throw', async () => {
@@ -350,7 +350,7 @@ describe('given sequential is true', () => {
 
     describe('and 1 message fails to be processed', () => {
       beforeEach(() => {
-        promise = handler({
+        promise = handler(...args<SQSEvent>({
           Records: [
             fromPartial<SQSRecord>({
               messageId: 'MESSAGE_1',
@@ -368,7 +368,7 @@ describe('given sequential is true', () => {
               } satisfies SomeMessageBody),
             }),
           ],
-        });
+        }));
       });
 
       it('should throw', async () => {
