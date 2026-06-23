@@ -5,19 +5,32 @@ type ForeachRequiredEvent = SQSEvent;
 type ForeachNextEvent<TEvent extends ForeachRequiredEvent, TBody> = Omit<TEvent, 'Records'> & {
   record: Omit<SQSRecord, 'body'> & { body: TBody };
 };
-interface ForeachRecordOptions<TBatchItemFailures, TBody = unknown> {
+interface ForeachRecordOptions<TBatchItemFailures, TBody, TRaw extends boolean> {
   bodyType?: TypeRef<TBody>;
   batchItemFailures: TBatchItemFailures;
   sequential?: boolean;
+  /**
+   * When set, the record body is passed through as the raw `string` rather
+   * than `JSON.parse`d. Useful for composing with a downstream validator
+   * that parses + validates in one step.
+   */
+  raw?: TRaw;
 }
 
 export const forEachSqsRecord =
-  <TEvent extends ForeachRequiredEvent, TContext, TBody, TBatchItemFailures extends boolean>({
+  <
+    TEvent extends ForeachRequiredEvent,
+    TContext,
+    TBody,
+    TBatchItemFailures extends boolean,
+    TRaw extends boolean = false,
+  >({
     batchItemFailures: useBatchItemFailures,
     sequential,
-  }: ForeachRecordOptions<TBatchItemFailures, TBody>): Middleware<
+    raw,
+  }: ForeachRecordOptions<TBatchItemFailures, TBody, TRaw>): Middleware<
     TEvent,
-    ForeachNextEvent<TEvent, TBody>,
+    ForeachNextEvent<TEvent, TRaw extends true ? string : TBody>,
     Promise<TBatchItemFailures extends true ? SQSBatchResponse : void>,
     Promise<void>,
     TContext,
@@ -26,7 +39,7 @@ export const forEachSqsRecord =
   (next) =>
   async ({ Records, ...event }, context, ..._rest) => {
     const handleRecord = async ({ body, ...record }: SQSRecord) => {
-      const parsedBody = JSON.parse(body) as TBody;
+      const parsedBody = raw ? body : (JSON.parse(body) as TBody);
       await next(
         {
           ...event,
@@ -34,7 +47,7 @@ export const forEachSqsRecord =
             ...record,
             body: parsedBody,
           },
-        } as ForeachNextEvent<TEvent, TBody>,
+        } as ForeachNextEvent<TEvent, TRaw extends true ? string : TBody>,
         context,
       );
     };

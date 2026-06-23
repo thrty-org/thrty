@@ -1,7 +1,8 @@
 import type { QueryParams, QueryParamsMeta } from '@thrty/api';
 import type { Middleware } from '@thrty/core';
+import { validate } from '@thrty/validator';
 import type { APIGatewayProxyEvent } from 'aws-lambda';
-import type { TypeOf, ZodError, ZodType } from 'zod';
+import { type TypeOf, ZodError, type ZodIssue, type ZodType } from 'zod';
 import { ZodBadRequestError } from './ZodBadRequestError';
 
 export interface QueryParamsOptions {
@@ -32,27 +33,20 @@ export const queryParams = <
   options?: QueryParamsOptions,
 ): Middleware<TEvent, OutputEvent<TEvent, TParams>, Promise<R>, Promise<R>, C, C> => {
   const { badRequestErrorFactory } = { ...optionsDefaults, ...options };
-  return Object.assign(
-    (next: any) =>
-      async (event: TEvent, ...rest: any[]): Promise<any> => {
-        const res = await params.safeParseAsync({
-          ...event.queryStringParameters,
-          ...event.multiValueQueryStringParameters,
-        });
-        if (res.success) {
-          return next(
-            Object.assign(event, { queryParams: res.data } satisfies QueryParams),
-            ...rest,
-          );
-        }
-        throw badRequestErrorFactory(res.error);
-      },
-    {
-      meta: {
-        queryParams: params,
-      } satisfies QueryParamsMeta,
-    },
-  );
+  const inner = validate<TEvent, TParams, C, R, 'queryParams'>({
+    schema: params,
+    select: (event) => ({
+      ...event.queryStringParameters,
+      ...event.multiValueQueryStringParameters,
+    }),
+    path: 'queryParams',
+    onInvalid: (issues) => badRequestErrorFactory(new ZodError(issues as ZodIssue[])),
+  }) as Middleware<TEvent, OutputEvent<TEvent, TParams>, Promise<R>, Promise<R>, C, C>;
+  return Object.assign(inner, {
+    meta: {
+      queryParams: params,
+    } satisfies QueryParamsMeta,
+  });
 };
 
 type OutputEvent<TInputEvent, TParams extends ZodType> = TInputEvent & QueryParams<TypeOf<TParams>>;
