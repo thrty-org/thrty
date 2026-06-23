@@ -4,9 +4,9 @@ import { APIGatewayProxyEvent } from 'aws-lambda';
 
 export const createEndpointMiddleware =
   <const TMethod extends HttpMethod>(method: TMethod) =>
-  <TEvent extends APIGatewayProxyEvent, R, TPath extends `/${string}`>(
+  <TEvent extends APIGatewayProxyEvent, C, R, TPath extends `/${string}`>(
     path: TPath,
-  ): Middleware<TEvent, OutputEvent<TEvent, TMethod, TPath>, R, R> =>
+  ): Middleware<TEvent, OutputEvent<TEvent, TMethod, TPath>, R, R, C, C> =>
     Object.assign(
       (next: any) =>
         (event: TEvent, ...rest: any[]) =>

@@ -1,4 +1,5 @@
 import { compose, types } from '@thrty/core';
+import { args } from '@thrty/testing';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { get, post, patch, trace, put, $delete, head, options } from './endpoint';
 
@@ -33,7 +34,7 @@ describe.each([
 
   it('should pass data properly', () => {
     expect(
-      handler({ pathParameters: { userId: 'USER_1' } } as Partial<APIGatewayProxyEvent> as any),
+      handler(...args<APIGatewayProxyEvent>({ pathParameters: { userId: 'USER_1' } })),
     ).resolves.toEqual({
       statusCode: 200,
       body: 'User ID: USER_1',

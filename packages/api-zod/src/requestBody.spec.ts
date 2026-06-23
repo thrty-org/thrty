@@ -1,5 +1,5 @@
 import { compose, types, typesOf } from '@thrty/core';
-import { fromPartial } from '@thrty/testing';
+import { args } from '@thrty/testing';
 import { z } from 'zod';
 import { APIGatewayProxyEvent, APIGatewayProxyHandler } from 'aws-lambda';
 import { requestBody } from './requestBody';
@@ -44,7 +44,7 @@ describe('given an unknown property is tried to be accessed', () => {
 describe('given request body is missing', () => {
   let result: Awaited<ReturnType<typeof handler>> | Error;
   beforeEach(async () => {
-    result = await handler(fromPartial<APIGatewayProxyEvent>({})).catch((err: Error) => err);
+    result = await handler(...args<APIGatewayProxyEvent>({})).catch((err: Error) => err);
   });
 
   it('should return an error', () => {
@@ -66,7 +66,7 @@ describe('given props are missing on request body', () => {
   let result: Awaited<ReturnType<typeof handler>> | Error;
   beforeEach(async () => {
     result = await handler(
-      fromPartial<APIGatewayProxyEvent>({
+      ...args<APIGatewayProxyEvent>({
         body: JSON.stringify({
           firstName: 'Marty',
           lastName: 'McFly',
@@ -94,7 +94,7 @@ describe('given additional props are provided', () => {
   let result: Awaited<ReturnType<typeof handler>>;
   beforeEach(async () => {
     result = await handler(
-      fromPartial<APIGatewayProxyEvent>({
+      ...args<APIGatewayProxyEvent>({
         body: JSON.stringify({
           firstName: 'Marty',
           lastName: 'McFly',

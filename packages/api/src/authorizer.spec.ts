@@ -1,4 +1,5 @@
 import { compose, types } from '@thrty/core';
+import { args } from '@thrty/testing';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { authorizer } from './authorizer';
 
@@ -17,7 +18,9 @@ it('should set meta data for authorizer', () => {
 });
 
 it('should pass data properly', () => {
-  expect(handler({ pathParameters: { test: 'world' } } as any)).resolves.toEqual({
+  expect(
+    handler(...args<APIGatewayProxyEvent>({ pathParameters: { test: 'world' } })),
+  ).resolves.toEqual({
     statusCode: 200,
     body: 'Hello, world',
   });

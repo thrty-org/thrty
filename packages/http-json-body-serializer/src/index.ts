@@ -5,9 +5,9 @@ export type SerializeJsonOptions<TBody = object> = Omit<APIGatewayProxyResult, '
   body?: TBody;
 };
 export const serializeJson =
-  <E, R1 extends APIGatewayProxyResult, R2 extends SerializeJsonOptions<TBody>, TBody>(
+  <E, C, R1 extends APIGatewayProxyResult, R2 extends SerializeJsonOptions<TBody>, TBody>(
     bodyType?: TypeRef<TBody>,
-  ): Middleware<E, E, Promise<R1>, Promise<R2>> =>
+  ): Middleware<E, E, Promise<R1>, Promise<R2>, C, C> =>
   (next) =>
   async (...args) => {
     const { body, ...rest } = await next(...args);

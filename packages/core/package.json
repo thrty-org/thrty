@@ -25,7 +25,8 @@
   },
   "scripts": {
     "test": "jest",
-    "build": "tsup"
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
   },
   "jest": {
     "transform": {

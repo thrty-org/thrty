@@ -1,4 +1,5 @@
 import { compose, eventType } from '@thrty/core';
+import { args } from '@thrty/testing';
 import { inject, fromClass } from './index';
 
 describe('inject()', () => {
@@ -23,18 +24,18 @@ describe('inject()', () => {
     );
 
     it('should infer types properly', () => {
-      composed(async (event) => {
-        event.deps.bService.b();
-        event.deps.aService.a();
+      composed(async (_event, context) => {
+        context.deps.bService.b();
+        context.deps.aService.a();
       });
     });
 
     it('should resolve dependencies properly', async () => {
       await expect(
-        composed(async (event) => ({
-          b: event.deps.bService.b(),
-          a: event.deps.aService.a(),
-        }))({}),
+        composed(async (_event, context) => ({
+          b: context.deps.bService.b(),
+          a: context.deps.aService.a(),
+        }))(...args<{}>({})),
       ).resolves.toEqual({
         b: 'BA',
         a: 'A',
@@ -43,18 +44,18 @@ describe('inject()', () => {
 
     it('should pass through arguments properly', async () => {
       const arg0 = {};
-      const arg1 = 1;
+      const arg1 = {};
       const arg2 = 2;
-      const res = await composed(async (...args: any[]) => args)(arg0, arg1, arg2);
+      const res = await composed(async (...args: any[]) => args)(arg0, arg1 as any, arg2 as any);
 
       expect(res).toEqual([arg0, arg1, arg2]);
     });
 
     describe('and unknown dependency is accessed', () => {
       it('should expect type error', () => {
-        composed(async (event) => {
+        composed(async (_event, context) => {
           // @ts-expect-error - Should complain about unknown property
-          event.deps.cService;
+          context.deps.cService;
         });
       });
     });
@@ -69,11 +70,11 @@ describe('inject()', () => {
       inject({
         aService: aServiceFactory,
       }),
-    )(async (event) => event.deps.aService);
+    )(async (_event, context) => context.deps.aService);
 
     beforeEach(async () => {
-      await handler({});
-      await handler({});
+      await handler(...args<{}>({}));
+      await handler(...args<{}>({}));
     });
 
     it('should call factory only once', () => {
@@ -85,7 +86,7 @@ describe('inject()', () => {
     type AService = ReturnType<typeof aServiceFactory>;
     const aServiceFactory = () => ({ a: 'a' });
     type BService = ReturnType<typeof bServiceFactory>;
-    const bServiceFactory = ({ aService }: { aService: AService }) => ({ b: 'b' });
+    const bServiceFactory = ({ aService: _aService }: { aService: AService }) => ({ b: 'b' });
     class DService {
       aService: AService;
       bService: BService;
@@ -109,20 +110,20 @@ describe('inject()', () => {
       );
 
       it('should infer types properly', () => {
-        composed(async (event) => {
-          event.deps.bService.b;
-          event.deps.aService.a;
-          event.deps.dService.d();
+        composed(async (_event, context) => {
+          context.deps.bService.b;
+          context.deps.aService.a;
+          context.deps.dService.d();
         });
       });
 
       it('should resolve dependencies properly', async () => {
         await expect(
-          composed(async (event) => ({
-            d: event.deps.dService.d(),
-            b: event.deps.bService.b,
-            a: event.deps.aService.a,
-          }))({}),
+          composed(async (_event, context) => ({
+            d: context.deps.dService.d(),
+            b: context.deps.bService.b,
+            a: context.deps.aService.a,
+          }))(...args<{}>({})),
         ).resolves.toEqual({
           d: 'dab',
           b: 'b',
@@ -198,10 +199,10 @@ describe('inject()', () => {
       inject({
         value: () => '',
       }),
-    )(async (event) => event.deps.value);
+    )(async (_event, context) => context.deps.value);
 
     it('should resolve dependency properly', async () => {
-      await expect(handler({})).resolves.toEqual('');
+      await expect(handler(...args<{}>({}))).resolves.toEqual('');
     });
   });
 
@@ -214,20 +215,45 @@ describe('inject()', () => {
         aService: aServiceFactory,
         bService: bServiceFactory,
       }),
-    )(async (event) => {
-      event.deps.bService;
-      event.deps.aService;
+    )(async (_event, context) => {
+      context.deps.bService;
+      context.deps.aService;
     });
     let result: any;
 
     beforeEach(async () => {
-      result = await handler({}).catch((e) => e);
+      result = await handler(...args<{}>({})).catch((e) => e);
     });
 
     it('should throw an error while executing handler', () => {
       expect(result).toEqual(
         new Error('Circular dependency detected "bService" -> "aService" -> "bService"'),
       );
+    });
+  });
+
+  describe('given context is a real AWS Lambda Context', () => {
+    it('should preserve context methods after augmentation', async () => {
+      const getRemainingTimeInMillis = jest.fn(() => 1000);
+      const realContext: any = {
+        functionName: 'fn',
+        getRemainingTimeInMillis,
+      };
+      const handler = compose(
+        eventType<{}>(),
+        inject({
+          probe: () => ({ kind: 'probe' as const }),
+        }),
+      )(async (_event, context) => ({
+        remaining: context.getRemainingTimeInMillis(),
+        probe: context.deps.probe.kind,
+      }));
+
+      await expect(handler({}, realContext)).resolves.toEqual({
+        remaining: 1000,
+        probe: 'probe',
+      });
+      expect(getRemainingTimeInMillis).toHaveBeenCalled();
     });
   });
 });

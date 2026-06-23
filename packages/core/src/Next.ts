@@ -1,1 +1,5 @@
-export type Next<EventType, ReturnType> = (event: EventType, ...args: any[]) => ReturnType;
+export type Next<EventType, ContextType, ReturnType> = (
+  event: EventType,
+  context: ContextType,
+  ...args: any[]
+) => ReturnType;

@@ -22,10 +22,15 @@ const optionsDefaults = {
  * @param body - Zod schema to validate the request body
  * @param options { RequestBodyOptions }
  */
-export const requestBody = <TEvent extends APIGatewayProxyEvent, R, const TBody extends ZodType>(
+export const requestBody = <
+  TEvent extends APIGatewayProxyEvent,
+  C,
+  R,
+  const TBody extends ZodType,
+>(
   body: TBody,
   options?: RequestBodyOptions,
-): Middleware<TEvent, OutputEvent<TEvent, TBody>, Promise<R>, Promise<R>> => {
+): Middleware<TEvent, OutputEvent<TEvent, TBody>, Promise<R>, Promise<R>, C, C> => {
   const { badRequestErrorFactory } = { ...optionsDefaults, ...options };
   return Object.assign(
     (next: any) =>

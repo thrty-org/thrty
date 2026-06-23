@@ -1,7 +1,7 @@
 import { SQSBatchResponse, SQSEvent, SQSRecord, SQSBatchItemFailure } from 'aws-lambda';
 import { Middleware, TypeRef } from '@thrty/core';
 
-type ForeachRequiredEvent = SQSEvent & { deps?: { logger?: { error: (...args: any[]) => any } } };
+type ForeachRequiredEvent = SQSEvent;
 type ForeachNextEvent<TEvent extends ForeachRequiredEvent, TBody> = Omit<TEvent, 'Records'> & {
   record: Omit<SQSRecord, 'body'> & { body: TBody };
 };
@@ -12,35 +12,43 @@ interface ForeachRecordOptions<TBatchItemFailures, TBody = unknown> {
 }
 
 export const forEachSqsRecord =
-  <TEvent extends ForeachRequiredEvent, TBody, TBatchItemFailures extends boolean>({
+  <TEvent extends ForeachRequiredEvent, TContext, TBody, TBatchItemFailures extends boolean>({
     batchItemFailures: useBatchItemFailures,
     sequential,
   }: ForeachRecordOptions<TBatchItemFailures, TBody>): Middleware<
     TEvent,
     ForeachNextEvent<TEvent, TBody>,
     Promise<TBatchItemFailures extends true ? SQSBatchResponse : void>,
-    Promise<void>
+    Promise<void>,
+    TContext,
+    TContext
   > =>
   (next) =>
-  async ({ Records, ...event }, ...rest) => {
+  async ({ Records, ...event }, context, ..._rest) => {
     const handleRecord = async ({ body, ...record }: SQSRecord) => {
       const parsedBody = JSON.parse(body) as TBody;
-      await next({
-        ...event,
-        record: {
-          ...record,
-          body: parsedBody,
-        },
-      });
+      await next(
+        {
+          ...event,
+          record: {
+            ...record,
+            body: parsedBody,
+          },
+        } as ForeachNextEvent<TEvent, TBody>,
+        context,
+      );
     };
     const isBatchItemFailure = (
       failure: SQSBatchItemFailure | undefined,
     ): failure is SQSBatchItemFailure => !!failure;
+    const contextDeps = (
+      context as { deps?: { logger?: { error: (...args: any[]) => any } } } | undefined
+    )?.deps;
     const handleRecordWithBatchItemFailure = async (record: SQSRecord) => {
       try {
         await handleRecord(record);
       } catch (e) {
-        (event.deps?.logger ?? console).error(e);
+        (contextDeps?.logger ?? console).error(e);
         return {
           itemIdentifier: record.messageId,
         } satisfies SQSBatchItemFailure;

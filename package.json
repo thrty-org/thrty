@@ -12,6 +12,7 @@
   "scripts": {
     "test": "lerna run test --stream",
     "build": "lerna run build",
+    "typecheck": "lerna run typecheck --stream",
     "prettier:write": "prettier --write \"packages/**/*.{ts,json}\""
   },
   "workspaces": [

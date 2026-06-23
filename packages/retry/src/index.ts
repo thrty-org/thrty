@@ -28,12 +28,10 @@ export interface RetryOptions {
    */
   logger?: false | { info(...args: any[]): any };
 }
-type RequiredEvent = {
-  deps?: { logger?: { info(...args: any[]): any } };
-};
-export const retry = <T extends RequiredEvent, R>(
+
+export const retry = <T, C, R>(
   options: RetryOptions = {},
-): Middleware<T, T, Promise<R>, Promise<R>> => {
+): Middleware<T, T, Promise<R>, Promise<R>, C, C> => {
   const { maxRetries = 3, delay = 0, logger = console } = options;
   const retryOn =
     typeof options.retryOn === 'function'
@@ -44,17 +42,20 @@ export const retry = <T extends RequiredEvent, R>(
         : () => true;
 
   return (next) =>
-    async (event: T, ...args): Promise<R> => {
+    async (event, context, ...args): Promise<R> => {
+      const contextLogger = (
+        context as { deps?: { logger?: { info(...args: any[]): any } } } | undefined
+      )?.deps?.logger;
       const log =
         logger === false
           ? () => {}
-          : (event.deps?.logger?.info.bind(event.deps?.logger) ?? logger.info.bind(logger));
+          : (contextLogger?.info.bind(contextLogger) ?? logger.info.bind(logger));
       let retries = 0;
       let error: Error | unknown = new Error('Unknown error');
       do {
         if (retries) log(`Retrying ${retries}. time`);
         try {
-          return await next(event, ...args);
+          return await next(event, context, ...args);
         } catch (e) {
           if (delay) {
             await new Promise((resolve) => setTimeout(resolve, delay));

@@ -43,14 +43,14 @@ export interface SecurityHeadersOptions {
    */
   xFrameOptions?: XFrameOptions | false;
 }
-export const addSecurityHeaders = <T, R extends Promise<APIGatewayProxyResult>>({
+export const addSecurityHeaders = <T, C, R extends Promise<APIGatewayProxyResult>>({
   cacheControl = 'no-store',
   refererPolicy = 'strict-origin-when-cross-origin',
   strictTransportSecurity = 'max-age=31536000',
   contentTypeOptions = 'nosniff',
   xssProtection = '1; mode=block',
   xFrameOptions = 'SAMEORIGIN',
-}: SecurityHeadersOptions = {}): Middleware<T, T, R, R> => {
+}: SecurityHeadersOptions = {}): Middleware<T, T, R, R, C, C> => {
   const securityHeaders = {
     ...(cacheControl
       ? { 'Cache-Control': Array.isArray(cacheControl) ? cacheControl.join(', ') : cacheControl }

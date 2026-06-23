@@ -9,7 +9,7 @@ export interface NormalizedHeadersEvent {
 }
 
 export const normalizeHeaders =
-  <T extends InputEvent, R>(): Middleware<T, OutputEvent<T>, R, R> =>
+  <T extends InputEvent, C, R>(): Middleware<T, OutputEvent<T>, R, R, C, C> =>
   (handler) =>
   (event, ...args) =>
     handler(
