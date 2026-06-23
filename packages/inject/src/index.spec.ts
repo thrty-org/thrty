@@ -46,13 +46,9 @@ describe('inject()', () => {
       const arg0 = {};
       const arg1 = {};
       const arg2 = 2;
-      const res = await composed(async (event, _context, third) => [event, third])(
-        arg0,
-        arg1 as any,
-        arg2 as any,
-      );
+      const res = await composed(async (...args: any[]) => args)(arg0, arg1 as any, arg2 as any);
 
-      expect(res).toEqual([arg0, arg2]);
+      expect(res).toEqual([arg0, arg1, arg2]);
     });
 
     describe('and unknown dependency is accessed', () => {
