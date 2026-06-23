@@ -1,4 +1,5 @@
 import { Middleware } from '@thrty/core';
+import { errorHandler } from '@thrty/error-handler';
 import { BaseError } from '@thrty/http-errors';
 import { APIGatewayProxyResult } from 'aws-lambda';
 
@@ -43,21 +44,13 @@ type HttpErrorHandlerRequiredEvents = {
   httpMethod: string;
 };
 
-export const httpErrorHandler =
-  <T extends HttpErrorHandlerRequiredEvents, C, R>(
-    options: HttpErrorHandlerOptions = {},
-  ): Middleware<T, T, Promise<R>, Promise<R>, C, C> =>
-  (handler) =>
-  async (event, context, ...args) =>
-    handler(event, context, ...args).catch((error) => {
-      const resolvedOptions = { ...defaultOptions, ...options };
-      const contextDeps = (context as { deps?: { logger?: ErrorLogger } } | undefined)?.deps;
-      const logger =
-        options.logger === false
-          ? noOpLogger
-          : (contextDeps?.logger ?? options.logger ?? console);
-      logger.error(error);
-
+export const httpErrorHandler = <T extends HttpErrorHandlerRequiredEvents, C, R>(
+  options: HttpErrorHandlerOptions = {},
+): Middleware<T, T, Promise<R>, Promise<R>, C, C> => {
+  const resolvedOptions = { ...defaultOptions, ...options };
+  return errorHandler<T, C, R>({
+    logger: options.logger,
+    onError: (error) => {
       const { statusCode, message, ...errorProps } = getSafeResponse(resolvedOptions, error);
       return {
         statusCode,
@@ -69,7 +62,9 @@ export const httpErrorHandler =
           ...errorProps,
         }),
       } satisfies APIGatewayProxyResult as unknown as R;
-    });
+    },
+  });
+};
 
 export const getSafeResponse = (options: ResolvedHttpErrorHandlerOptions, error?: any) => {
   const isSafeErrorInstance = error instanceof options.safeBaseError;
@@ -104,5 +99,3 @@ const defaultOptions: ResolvedHttpErrorHandlerOptions = {
   blacklist: [internalServerError, forbiddenError, unauthorizedError, unknownError],
   safeBaseError: BaseError,
 };
-
-const noOpLogger = { error: () => null };
