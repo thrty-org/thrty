@@ -10,16 +10,23 @@ export type Container<T extends Providers<Container<T>>> = {
 };
 
 export const inject =
-  <T extends object, TProviders extends Providers<Container<TProviders>>, R>(
+  <TEvent, TContext, TProviders extends Providers<Container<TProviders>>, R>(
     providers: TProviders,
-  ): Middleware<T, Dependencies<Container<TProviders>> & T, R, R> =>
+  ): Middleware<
+    TEvent,
+    TEvent,
+    R,
+    R,
+    TContext,
+    TContext & Dependencies<Container<TProviders>>
+  > =>
   (handler) => {
     let container: Container<TProviders>;
-    return (event, ...args) => {
+    return (event, context, ...args) => {
       if (!container) {
         container = createContainer(providers);
       }
-      return handler(Object.assign(event, { deps: container }), ...args);
+      return handler(event, Object.assign((context ?? {}) as any, { deps: container }), ...args);
     };
   };
 

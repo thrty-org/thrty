@@ -22,10 +22,15 @@ const optionsDefaults = {
  * @param params - Zod schema to validate the query string parameters
  * @param options { QueryParamsOptions }
  */
-export const queryParams = <TEvent extends APIGatewayProxyEvent, R, const TParams extends ZodType>(
+export const queryParams = <
+  TEvent extends APIGatewayProxyEvent,
+  C,
+  R,
+  const TParams extends ZodType,
+>(
   params: TParams,
   options?: QueryParamsOptions,
-): Middleware<TEvent, OutputEvent<TEvent, TParams>, Promise<R>, Promise<R>> => {
+): Middleware<TEvent, OutputEvent<TEvent, TParams>, Promise<R>, Promise<R>, C, C> => {
   const { badRequestErrorFactory } = { ...optionsDefaults, ...options };
   return Object.assign(
     (next: any) =>

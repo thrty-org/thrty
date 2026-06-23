@@ -1,6 +1,6 @@
 import { compose, types } from '@thrty/core';
 import { inject } from '@thrty/inject';
-import { fromPartial } from '@thrty/testing';
+import { args } from '@thrty/testing';
 import {
   ForbiddenError,
   BadRequestError,
@@ -41,7 +41,7 @@ describe('simple setup', () => {
     throwError.mockImplementation(() => {
       throw new BadRequestError('BadRequest');
     });
-    const response = await handler(fromPartial<APIGatewayProxyEvent>({}));
+    const response = await handler(...args<APIGatewayProxyEvent>({}));
 
     expect(response).toEqual({
       statusCode: error.statusCode,
@@ -58,7 +58,7 @@ describe('simple setup', () => {
     throwError.mockImplementation(() => {
       throw new Error('Test');
     });
-    const response = await handler(fromPartial<APIGatewayProxyEvent>({}));
+    const response = await handler(...args<APIGatewayProxyEvent>({}));
 
     expect(response).toEqual({
       statusCode: 500,
@@ -75,7 +75,7 @@ describe('simple setup', () => {
     throwError.mockImplementation(() => {
       throw new InternalServerError('Sensitive data');
     });
-    const response = await handler(fromPartial<APIGatewayProxyEvent>({}));
+    const response = await handler(...args<APIGatewayProxyEvent>({}));
 
     expect(response).toEqual({
       statusCode: 500,
@@ -92,7 +92,7 @@ describe('simple setup', () => {
     throwError.mockImplementation(() => {
       throw new UnauthorizedError('Sensitive data');
     });
-    const response = await handler(fromPartial<APIGatewayProxyEvent>({}));
+    const response = await handler(...args<APIGatewayProxyEvent>({}));
 
     expect(response).toEqual({
       statusCode: 401,
@@ -109,7 +109,7 @@ describe('simple setup', () => {
     throwError.mockImplementation(() => {
       throw new ForbiddenError('Sensitive data');
     });
-    const response = await handler(fromPartial<APIGatewayProxyEvent>({}));
+    const response = await handler(...args<APIGatewayProxyEvent>({}));
 
     expect(response).toEqual({
       statusCode: 403,
@@ -147,7 +147,7 @@ describe('blacklist', () => {
     throwError.mockImplementation(() => {
       throw new NotFoundError('Sensitive data');
     });
-    const response = await handler(fromPartial<APIGatewayProxyEvent>({}));
+    const response = await handler(...args<APIGatewayProxyEvent>({}));
 
     expect(response).toEqual({
       statusCode: 404,
@@ -164,7 +164,7 @@ describe('blacklist', () => {
     throwError.mockImplementation(() => {
       throw new UnauthorizedError('Sensitive data');
     });
-    const response = await handler(fromPartial<APIGatewayProxyEvent>({}));
+    const response = await handler(...args<APIGatewayProxyEvent>({}));
 
     expect(response).toEqual({
       statusCode: 401,
@@ -178,14 +178,14 @@ describe('blacklist', () => {
   });
 });
 
-describe('event.deps.logger', () => {
+describe('context.deps.logger', () => {
   const handler = compose(
     types<APIGatewayEvent, Promise<APIGatewayProxyResult>>(),
     inject({
       logger: () => ({ error: logError }),
     }),
     httpErrorHandler(),
-  )(async (event) => {
+  )(async (_event) => {
     throwError();
 
     return {
@@ -205,7 +205,7 @@ describe('event.deps.logger', () => {
     throwError.mockImplementation(() => {
       throw error;
     });
-    await handler(fromPartial<APIGatewayProxyEvent>({}));
+    await handler(...args<APIGatewayProxyEvent>({}));
     expect(logError).toHaveBeenCalledWith(error);
   });
 });
@@ -237,7 +237,7 @@ describe('options.logger', () => {
     throwError.mockImplementation(() => {
       throw error;
     });
-    await handler(fromPartial<APIGatewayProxyEvent>({}));
+    await handler(...args<APIGatewayProxyEvent>({}));
     expect(logError).toHaveBeenCalledWith(error);
   });
 });

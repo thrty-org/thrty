@@ -5,10 +5,10 @@ export type StageVariableMeta = {
   [K in `stageVariable:${string}`]: string;
 };
 export const STAGE_VARIABLE_PREFIX = 'stageVariable:';
-export const stageVariable = <TEvent extends APIGatewayProxyEvent, R>(
+export const stageVariable = <TEvent extends APIGatewayProxyEvent, C, R>(
   key: string,
   value: any,
-): Middleware<TEvent, TEvent, R, R> =>
+): Middleware<TEvent, TEvent, R, R, C, C> =>
   Object.assign(
     (next: any) =>
       (...args: any[]) =>

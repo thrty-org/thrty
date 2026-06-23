@@ -1,3 +1,4 @@
+import { args } from '@thrty/testing';
 import { compose } from './compose';
 
 it('should apply middlewares in reverse', async () => {
@@ -34,7 +35,7 @@ it('should execute middleware handlers in order', async () => {
     };
 
   const composedHandler = compose(middleware1, middleware2, middleware3)(async () => {});
-  composedHandler({});
+  composedHandler(...args({}));
 
   expect(order).toEqual([middleware1, middleware2, middleware3]);
   expect(composedHandler.meta).toEqual({ 1: '1', 2: '2' });
@@ -71,6 +72,16 @@ it('should be able to enhance events through middlewares', async () => {
   const handler = compose(middleware)(actualHandler);
   const event = {};
 
-  await expect(handler(event)).resolves.toEqual(1);
+  await expect(handler(...args(event))).resolves.toEqual(1);
   expect(event).toEqual({ test: 1 });
+});
+
+it('should allow middlewares to augment context', async () => {
+  const addDeps =
+    (next: any) =>
+    (event: any, context: any) =>
+      next(event, Object.assign(context, { deps: { svc: 'x' } }));
+  const handler = compose(addDeps)(async (_event: any, context: any) => context.deps.svc);
+
+  await expect(handler(...args({}))).resolves.toEqual('x');
 });

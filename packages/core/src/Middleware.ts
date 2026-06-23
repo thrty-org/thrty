@@ -1,3 +1,4 @@
+import type { Context as LambdaContext } from 'aws-lambda';
 import { Next } from './Next';
 
 export type Middleware<
@@ -5,7 +6,9 @@ export type Middleware<
   TNextEvent,
   TExpectedResult,
   TTransformedResult,
+  TRequiredContext = LambdaContext,
+  TNextContext = TRequiredContext,
   TExtendedNext = {},
 > = (
-  next: Next<TNextEvent, TTransformedResult>,
-) => Next<TRequiredEvent, TExpectedResult> & TExtendedNext;
+  next: Next<TNextEvent, TNextContext, TTransformedResult>,
+) => Next<TRequiredEvent, TRequiredContext, TExpectedResult> & TExtendedNext;

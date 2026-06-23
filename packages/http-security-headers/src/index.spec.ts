@@ -1,5 +1,5 @@
 import { compose, typesOf } from '@thrty/core';
-import { fromPartial } from '@thrty/testing';
+import { args } from '@thrty/testing';
 import { APIGatewayProxyHandler, APIGatewayProxyEvent } from 'aws-lambda';
 import { addSecurityHeaders } from './index';
 
@@ -17,7 +17,7 @@ describe('given no options are set', () => {
   let result: Awaited<ReturnType<typeof handler>>;
 
   beforeEach(async () => {
-    result = await handler(fromPartial<APIGatewayProxyEvent>({}));
+    result = await handler(...args<APIGatewayProxyEvent>({}));
   });
 
   it('should return headers', () => {
@@ -53,7 +53,7 @@ describe('given custom options are set', () => {
   let result: Awaited<ReturnType<typeof handler>>;
 
   beforeEach(async () => {
-    result = await handler(fromPartial<APIGatewayProxyEvent>({}));
+    result = await handler(...args<APIGatewayProxyEvent>({}));
   });
 
   it('should return headers', () => {
@@ -89,7 +89,7 @@ describe('given all headers are deactivated', () => {
   let result: Awaited<ReturnType<typeof handler>>;
 
   beforeEach(async () => {
-    result = await handler(fromPartial<APIGatewayProxyEvent>({}));
+    result = await handler(...args<APIGatewayProxyEvent>({}));
   });
 
   it('should return empty headers', () => {

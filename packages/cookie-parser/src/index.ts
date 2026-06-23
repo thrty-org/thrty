@@ -6,9 +6,9 @@ export interface ParseCookieRequiredEvent {
   headers: APIGatewayRequestAuthorizerEventHeaders | null;
 }
 export const parseCookie =
-  <T extends ParseCookieRequiredEvent, R>(
+  <T extends ParseCookieRequiredEvent, C, R>(
     options?: ParseOptions,
-  ): Middleware<T, T & { cookie: object }, R, R> =>
+  ): Middleware<T, T & { cookie: object }, R, R, C, C> =>
   (next) =>
   (event: T, ...args) =>
     next(

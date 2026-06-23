@@ -41,19 +41,21 @@ type ResolvedHttpErrorHandlerOptions = Required<
 type HttpErrorHandlerRequiredEvents = {
   path: string;
   httpMethod: string;
-  deps?: { logger?: ErrorLogger };
 };
 
 export const httpErrorHandler =
-  <T extends HttpErrorHandlerRequiredEvents, R>(
+  <T extends HttpErrorHandlerRequiredEvents, C, R>(
     options: HttpErrorHandlerOptions = {},
-  ): Middleware<T, T, Promise<R>, Promise<R>> =>
+  ): Middleware<T, T, Promise<R>, Promise<R>, C, C> =>
   (handler) =>
-  async (event, ...args) =>
-    handler(event, ...args).catch((error) => {
+  async (event, context, ...args) =>
+    handler(event, context, ...args).catch((error) => {
       const resolvedOptions = { ...defaultOptions, ...options };
+      const contextDeps = (context as { deps?: { logger?: ErrorLogger } } | undefined)?.deps;
       const logger =
-        options.logger === false ? noOpLogger : (event.deps?.logger ?? options.logger ?? console);
+        options.logger === false
+          ? noOpLogger
+          : (contextDeps?.logger ?? options.logger ?? console);
       logger.error(error);
 
       const { statusCode, message, ...errorProps } = getSafeResponse(resolvedOptions, error);

@@ -1,4 +1,5 @@
 import { compose, types, of } from '@thrty/core';
+import { args } from '@thrty/testing';
 import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { serializeJson } from './index';
 
@@ -21,7 +22,7 @@ describe('given no body type is specified', () => {
 
   beforeEach(async () => {
     handler = createHandler();
-    result = await handler({} as any);
+    result = await handler(...args<APIGatewayEvent>({}));
   });
 
   it('should return serialized response body', () => {
@@ -60,7 +61,7 @@ describe('given body type is specified', () => {
 
   beforeEach(async () => {
     handler = createHandler();
-    result = await handler({} as any);
+    result = await handler(...args<APIGatewayEvent>({}));
   });
 
   it('should return serialized response body', () => {

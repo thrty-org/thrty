@@ -18,10 +18,15 @@ export interface ResponseBodyOptions {
  * @param body - Zod schema to validate the response body
  * @param validate - If true, the body will be validated against the schema. Default is false.
  */
-export const responseBody = <TEvent, R extends APIGatewayProxyResult, const TBody extends ZodType>(
+export const responseBody = <
+  TEvent,
+  C,
+  R extends APIGatewayProxyResult,
+  const TBody extends ZodType,
+>(
   body: TBody,
   { validate }: ResponseBodyOptions = {},
-): Middleware<TEvent, TEvent, Promise<R>, Promise<OutputResult<R, TBody>>> =>
+): Middleware<TEvent, TEvent, Promise<R>, Promise<OutputResult<R, TBody>>, C, C> =>
   Object.assign(
     (next: any) =>
       async (...args: any[]) => {

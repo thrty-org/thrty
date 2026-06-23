@@ -60,9 +60,9 @@ interface CorsRequiredEvent {
 }
 
 export const handleCors =
-  <T extends CorsRequiredEvent, R extends APIGatewayProxyResult>(
+  <T extends CorsRequiredEvent, C, R extends APIGatewayProxyResult>(
     options: CorsOptions = {},
-  ): Middleware<T, T, Promise<R>, Promise<R>> =>
+  ): Middleware<T, T, Promise<R>, Promise<R>, C, C> =>
   (handler) =>
   async (event, ...rest) => {
     const evaluatedOptions = { ...defaultCorsOptions, ...options };

@@ -1,5 +1,5 @@
 import { compose, typesOf } from '@thrty/core';
-import { fromPartial } from '@thrty/testing';
+import { args } from '@thrty/testing';
 import { z } from 'zod';
 import { APIGatewayProxyEvent, APIGatewayProxyHandler } from 'aws-lambda';
 import { responseBody } from './responseBody';
@@ -22,7 +22,7 @@ describe('given type of response body is invalid', () => {
 
     let result: Awaited<ReturnType<typeof handler>>;
     beforeEach(async () => {
-      result = await handler(fromPartial<APIGatewayProxyEvent>({}));
+      result = await handler(...args<APIGatewayProxyEvent>({}));
     });
 
     it('should expect error', () => {
@@ -64,7 +64,7 @@ describe('given type of response body is invalid', () => {
 
     let result: Awaited<ReturnType<typeof handler>> | Error;
     beforeEach(async () => {
-      result = await handler(fromPartial<APIGatewayProxyEvent>({})).catch((e) => e);
+      result = await handler(...args<APIGatewayProxyEvent>({})).catch((e) => e);
     });
 
     it('should return error', () => {
@@ -106,7 +106,7 @@ describe('given response body is valid', () => {
 
   let result: Awaited<ReturnType<typeof handler>>;
   beforeEach(async () => {
-    result = await handler(fromPartial<APIGatewayProxyEvent>({}));
+    result = await handler(...args<APIGatewayProxyEvent>({}));
   });
 
   it('should return serialized response', () => {

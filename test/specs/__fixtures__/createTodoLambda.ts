@@ -28,8 +28,8 @@ export const handler = compose(
   scopes('todo:create'),
   requestBody(CreateTodoRequestModel),
   responseBody(CreateTodoResponseModel),
-)(async (event) => {
-  const { todoRepository } = event.deps;
+)(async (event, context) => {
+  const { todoRepository } = context.deps;
 
   const todo = todoRepository.createTodo(event.requestBody.title);
 

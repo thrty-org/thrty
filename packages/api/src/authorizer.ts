@@ -4,9 +4,9 @@ import { Middleware } from '@thrty/core';
 export interface AuthorizerMeta {
   authorizerName?: string;
 }
-export const authorizer = <TEvent extends APIGatewayProxyEvent, R>(
+export const authorizer = <TEvent extends APIGatewayProxyEvent, C, R>(
   authorizerName: string,
-): Middleware<TEvent, TEvent, R, R> =>
+): Middleware<TEvent, TEvent, R, R, C, C> =>
   Object.assign((next: any) => next, {
     meta: {
       authorizerName,

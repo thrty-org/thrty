@@ -30,8 +30,8 @@ export const handler = compose(
     }),
   ),
   responseBody(PatchTodoResponseModel),
-)(async (event) => {
-  const { todoRepository } = event.deps;
+)(async (event, context) => {
+  const { todoRepository } = context.deps;
 
   const todo = todoRepository.findTodoById(event.routeParams.todoId);
   if (!todo) {

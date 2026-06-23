@@ -26,8 +26,8 @@ export const handler = compose(
   scopes('todo:read'),
   authorizer('default'),
   responseBody(GetTodoResponseModel),
-)(async (event) => {
-  const { todoRepository } = event.deps;
+)(async (_event, context) => {
+  const { todoRepository } = context.deps;
 
   const todo = todoRepository.findTodos();
 

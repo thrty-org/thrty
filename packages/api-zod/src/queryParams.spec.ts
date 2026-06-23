@@ -1,5 +1,5 @@
 import { compose, types, typesOf } from '@thrty/core';
-import { fromPartial } from '@thrty/testing';
+import { args } from '@thrty/testing';
 import { z } from 'zod';
 import { APIGatewayProxyEvent, APIGatewayProxyHandler } from 'aws-lambda';
 import { queryParams } from './queryParams';
@@ -45,7 +45,7 @@ describe('given props are missing in query params', () => {
   let result: Awaited<ReturnType<typeof handler>> | Error;
   beforeEach(async () => {
     result = await handler(
-      fromPartial<APIGatewayProxyEvent>({
+      ...args<APIGatewayProxyEvent>({
         queryStringParameters: {
           limit: '100',
           page: '2',
@@ -73,7 +73,7 @@ describe('given additional props are provided', () => {
   let result: Awaited<ReturnType<typeof handler>>;
   beforeEach(async () => {
     result = await handler(
-      fromPartial<APIGatewayProxyEvent>({
+      ...args<APIGatewayProxyEvent>({
         queryStringParameters: {
           limit: '100',
           page: '2',
