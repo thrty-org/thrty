@@ -1,0 +1,53 @@
+---
+title: FAQ
+---
+
+# FAQ
+
+## When should I use thrty?
+
+Use thrty when your Lambda has more than one cross-cutting concern: dependency injection, validation, error handling, response shaping, logging, etc. Composing those as middlewares keeps the actual handler focused on business logic and the tests fast. The type inference pays for itself the first time you reorder, add, or remove a middleware without re-annotating downstream handlers.
+
+If you also want infrastructure (API Gateway, authorizers, …) and a typed client SDK derived from the same handler files, the [Full framework](/full-framework) track gives you that today for HTTP APIs.
+
+## When should I *not* use thrty?
+
+Skip thrty for single-purpose Lambdas with no middleware needs — a 10-line transform handler doesn't benefit from a chain. Non-Lambda runtimes (Cloudflare Workers, Vercel Functions, plain Node servers) aren't supported; the `Middleware<...>` type is shaped around the `(event, context)` signature `aws-lambda` types describe. If your project is committed to Middy, Powertools, or a custom middleware framework, the migration cost is unlikely to be worth it unless you also want the meta-driven infra/CLI tooling.
+
+## Is thrty stable? It says `3.0.0-alpha.x` on npm
+
+It's pre-release. The shape of public types and exported middlewares may change between alpha releases — including potential renames, signature changes, and breakage of the `meta` contract that `@thrty/api-cdk` and `@thrty/cli` read. Breaking changes are called out in each PR description on GitHub; track [releases](https://github.com/thrty-org/thrty/releases) for the canonical changelog.
+
+If you adopt thrty today, expect a couple of small migration passes before the first stable release. Pin to an exact alpha version and bump deliberately.
+
+## Which Lambda triggers does thrty support?
+
+Anything you can express as a handler type from `aws-lambda` (or a custom `Handler<TEvent, TResult>`) — `APIGatewayProxyHandler`, `APIGatewayProxyHandlerV2`, `SQSHandler`, `EventBridgeHandler<T, D>`, `S3Handler`, `ScheduledHandler`, `KinesisStreamHandler`, `DynamoDBStreamHandler`, custom event sources, and so on.
+
+The [Use cases](/use-cases/http-api-gateway) section has concrete recipes for the common ones. For anything not listed there, anchor on the right handler type with `typesOf<...>()` and compose the same primitives (`inject`, `validate`, `errorHandler`).
+
+## How do I migrate from a raw Lambda handler?
+
+Incrementally. Wrap your existing handler in a one-middleware `compose` first — that's a no-op at runtime but unlocks the rest:
+
+```typescript
+import { compose, typesOf } from '@thrty/core';
+
+export const handler = compose(
+  typesOf<APIGatewayProxyHandler>(),
+)(existingHandler);
+```
+
+Then add one middleware at a time. A useful order: `inject` first (move dependency wiring out of the handler), then `errorHandler` (catch what the handler currently catches by hand), then `validate` (move schema enforcement out of the handler body), then optional response-shaping middlewares.
+
+You can ship after each step — the chain stays callable as a regular Lambda handler the whole way through.
+
+## Does thrty work with Zod / Valibot / ArkType?
+
+Yes. `@thrty/validator` is built on [Standard Schema](https://standardschema.dev) — Zod 3.24+, Valibot 1.0+, ArkType 2.0+, and any other Standard-Schema-compliant library work without adapters. See [Quickstart → Validate](/quickstart#2-validate) for the worked example.
+
+For HTTP APIs specifically, `@thrty/api-zod` is a thin Zod-typed preset that maps validation issues onto an HTTP-shaped `ZodBadRequestError` so `httpErrorHandler` can produce a `400` response automatically.
+
+## Can I write my own middleware?
+
+Yes — `Middleware<...>` is part of `@thrty/core`'s public surface, and you can also group a recurring set of middlewares into a reusable preset. See [Custom middlewares](/custom-middlewares) for the type signature, a worked example, and the grouping pattern.

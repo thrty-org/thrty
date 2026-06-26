@@ -1,0 +1,62 @@
+---
+title: Meta propagation
+---
+
+# Meta propagation
+
+Middlewares can attach a `meta` object that travels with the composed handler. `compose` merges meta from every middleware in the chain and exposes it on the returned function:
+
+```typescript
+const handler = compose(
+  typesOf<APIGatewayProxyHandler>(),
+  get('/todos/{todoId}'),
+  authorizer('default'),
+  requestBody(TodoInput),
+  responseBody(Todo),
+)(async (event) => /* … */);
+
+handler.meta;
+// {
+//   endpoint: { method: 'get', path: '/todos/{todoId}' },
+//   authorizerName: 'default',
+//   requestBody: TodoInput,    // the Zod schema itself
+//   responseBody: Todo,
+// }
+```
+
+The merge is shallow `{ ...f.meta, ...g.meta }`, accumulated as the `reduce` walks the chain. Later middlewares override earlier ones on key collision — but in practice each middleware uses its own namespaced key (`endpoint`, `authorizerName`, `requestBody`, …) so collisions don't happen.
+
+## How a middleware attaches meta
+
+`Object.assign` the meta onto the middleware function itself:
+
+```typescript
+export const requestBody = (schema, options?) => {
+  const inner = validate({ schema, /* … */ });
+  return Object.assign(inner, {
+    meta: { requestBody: schema },
+  });
+};
+```
+
+`compose`'s reduce sees `.meta` on both `f` and `g` and merges them onto the composed result. The middleware's runtime behavior is unchanged.
+
+## What reads meta
+
+Two integrations:
+
+### `@thrty/api-cdk`
+
+Reads each handler file via [`@thrty/meta`](https://github.com/thrty-org/thrty/tree/main/packages/meta)'s `getLambdaMeta(glob)`, which evaluates the file's `handler` export and inspects `.meta`. Routes (`endpoint`), authorizers (`authorizerName`), and request/response shapes all come from there — your CDK stack doesn't restate them.
+
+See [CDK deployment](/full-framework/cdk-deployment).
+
+### `@thrty/cli`
+
+Same `getLambdaMeta(glob)`, different consumer. Emits a typed client SDK where each method corresponds to one `endpoint` and the request/response types are reconstructed from `meta.requestBody` / `meta.responseBody` / `meta.queryParams`.
+
+See [Typed client](/full-framework/typed-client).
+
+## Why meta lives on the function, not the type
+
+Type-level metadata wouldn't survive bundling. The CDK construct and the CLI both evaluate the compiled JS file at deploy / generation time and read `handler.meta` at runtime. Keeping meta as a real object on the function means the same source code is the source of truth for: types (via `Middleware<…>` inference), runtime behavior, and infrastructure / SDK generation.

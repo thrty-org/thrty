@@ -1,0 +1,64 @@
+---
+title: Typed client
+---
+
+# Typed client
+
+`@thrty/cli` walks the same `meta` that [`@thrty/api-cdk`](/full-framework/cdk-deployment) reads and generates a fully-typed client SDK from your handler files. There's no separate IDL or OpenAPI step — the schemas you already declared with `requestBody` / `responseBody` / `queryParams` are the contract.
+
+```shell
+npm install --save-dev @thrty/cli
+```
+
+## Generate a client
+
+```shell
+npx thrty create-api-client \
+  './src/handlers/*Lambda.ts' \
+  --outPath ./generated/apiClient.ts \
+  --httpClient fetch \
+  --models zod
+```
+
+Options:
+
+- `--outPath` — where to write the generated client file.
+- `--httpClient` — `axios` (default) or `fetch`.
+- `--models` — model generation strategy. `zod` re-emits the Zod schemas so callers get runtime parsing alongside type checking.
+- `--name` — name of the exported client factory (default `api`).
+
+The generated file exports a factory you wire up at the call site:
+
+```typescript
+import { api } from './generated/apiClient';
+
+const client = api({ baseUrl: 'https://api.example.com' });
+
+const todo = await client.createTodo({
+  body: { title: 'Wire up the docs' },
+});
+
+todo.id;        // string — inferred from responseBody schema
+todo.title;     // string
+todo.completed; // boolean
+```
+
+## Generate a publishable package
+
+Useful when the client is consumed across multiple workspaces or repos:
+
+```shell
+npx thrty create-api-package \
+  @my-org/todos-client \
+  './src/handlers/*Lambda.ts' \
+  --outDir ./packages/todos-client \
+  --httpClient axios
+```
+
+This emits a self-contained package (with `package.json`, build output, and `README.md` scaffolding) ready to be published or `npm link`ed into another project.
+
+## How the CLI discovers endpoints
+
+Same mechanism as the CDK construct: `getLambdaMeta(glob)` from `@thrty/meta` evaluates each matching file, reads `handler.meta`, and builds a list of endpoints. Each endpoint contributes one method to the generated client.
+
+This is why the chain in [HTTP APIs](/full-framework/http-apis) attaches meta from so many middlewares — every piece of compile-time knowledge (route, schema, authorizer) is reachable at code-generation time too.

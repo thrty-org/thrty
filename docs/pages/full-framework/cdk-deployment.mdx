@@ -1,0 +1,70 @@
+---
+title: CDK deployment
+---
+
+# CDK deployment
+
+`@thrty/api-cdk` reads the `meta` your `@thrty/api` middlewares attached at compose time and generates the API Gateway resources for you. You write each handler once — route, authorizer, request/response schemas — and the CDK construct discovers them by glob.
+
+```shell
+npm install @thrty/api-cdk
+```
+
+## A minimal stack
+
+```typescript filename="api-stack.ts"
+import { Stack, type StackProps } from 'aws-cdk-lib';
+import type { Construct } from 'constructs';
+import { join } from 'path';
+import { Api } from '@thrty/api-cdk';
+
+export class ApiStack extends Stack {
+  constructor(scope: Construct, id: string, props?: StackProps) {
+    super(scope, id, props);
+
+    new Api(this, 'TodosApi', {
+      restApiName: 'Todos',
+      pattern: join(__dirname, '..', 'src', 'handlers', '*Lambda.ts'),
+      authorizers: {
+        default: {
+          type: 'REQUEST',
+          lambdaArn:
+            'arn:aws:lambda:eu-central-1:000000000000:function:my-authorizer',
+        },
+      },
+    });
+  }
+}
+```
+
+`pattern` is a glob into your handler files. The construct walks each file, evaluates its `compose(…)(handler)` export, reads `handler.meta`, and creates a `LambdaEndpoint` per `meta.endpoint`. Routes, methods, and `authorizer('default')` references all come out of `meta` — no restating them in CDK.
+
+## What gets read from meta
+
+| Middleware                    | `meta` key                  | Used for                                       |
+| ----------------------------- | --------------------------- | ---------------------------------------------- |
+| `get` / `post` / `put` / …    | `meta.endpoint`             | Method + path on the API Gateway resource      |
+| `authorizer(name)`            | `meta.authorizerName`       | Attaches the named authorizer from `props`     |
+| `requestBody(zod)`            | `meta.requestBody`          | Surfaced to clients via [`@thrty/cli`](/full-framework/typed-client) |
+| `responseBody(zod)`           | `meta.responseBody`         | Same                                           |
+| `queryParams(zod)`            | `meta.queryParams`          | Same                                           |
+
+See [Meta propagation](/full-framework/meta-propagation) for how meta survives `compose` and stays type-discoverable.
+
+## Custom domain mapping
+
+```typescript
+new Api(this, 'TodosApi', {
+  restApiName: 'Todos',
+  pattern: join(__dirname, '..', 'src', 'handlers', '*Lambda.ts'),
+  basePathMapping: {
+    domainNames: ['api.example.com'],
+    path: 'todos',
+  },
+  authorizers: { /* … */ },
+});
+```
+
+## Per-endpoint customization
+
+For one-off overrides — a custom `LambdaEndpoint` subclass per handler, extra IAM, alternate runtime config — point the construct at a co-located callback file via `customLambdaEndpointCallbackMatcher` or supply your own `LambdaEndpoint` subclass via `defaultLambdaEndpointConstruct`. See the construct's source in [`@thrty/api-cdk`](https://github.com/thrty-org/thrty/tree/main/packages/api-cdk) for the full options surface.

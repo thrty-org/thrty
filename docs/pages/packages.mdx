@@ -1,0 +1,55 @@
+---
+title: Packages
+---
+
+# Packages
+
+thrty is split into small packages so you can pull in only what each handler needs. Detailed per-package documentation lives next to the source code on GitHub — links below. The groupings mirror the order in which you'd typically reach for each one.
+
+## Core
+
+The compose engine and shared types. Every chain starts here.
+
+- [`@thrty/core`](https://github.com/thrty-org/thrty/tree/main/packages/core) — `compose`, `Middleware`, `Next`, `typesOf`, type utilities. Zero dependency, ~383 bytes.
+
+## Generic middlewares
+
+Trigger-agnostic primitives. Use them with any handler signature — SQS, EventBridge, API Gateway, custom — they don't assume the event shape.
+
+- [`@thrty/inject`](https://github.com/thrty-org/thrty/tree/main/packages/inject) — DI container on `context.deps`, inferred from a providers map.
+- [`@thrty/validator`](https://github.com/thrty-org/thrty/tree/main/packages/validator) — [Standard Schema](https://standardschema.dev) validation (Zod, Valibot, ArkType, …). Three call forms: shorthand, positional path, options object.
+- [`@thrty/error-handler`](https://github.com/thrty-org/thrty/tree/main/packages/error-handler) — catch + optionally map errors from downstream middlewares; logs via `context.deps.logger` if injected.
+- [`@thrty/retry`](https://github.com/thrty-org/thrty/tree/main/packages/retry) — retry-on-failure with configurable strategy.
+- [`@thrty/meta`](https://github.com/thrty-org/thrty/tree/main/packages/meta) — read `handler.meta` from compiled handler files (powers CDK + CLI).
+
+## Event-source middlewares
+
+Reshape the event for a specific trigger.
+
+- [`@thrty/sqs-record-iterator`](https://github.com/thrty-org/thrty/tree/main/packages/sqs-record-iterator) — turn an SQS batch into per-record handler calls; partial-batch failure support; `raw` option for non-JSON payloads.
+
+## HTTP
+
+API Gateway-shaped middlewares. Built on the generic primitives above — `@thrty/api-zod` is a preset over `@thrty/validator`, `@thrty/http-error-handler` is a preset over `@thrty/error-handler`.
+
+- [`@thrty/api`](https://github.com/thrty-org/thrty/tree/main/packages/api) — `get` / `post` / `put` / `patch` / `delete`, `authorizer`, `routeParams`, `stageVariable`, `endpoint` (with `meta` attachment for CDK + CLI).
+- [`@thrty/api-zod`](https://github.com/thrty-org/thrty/tree/main/packages/api-zod) — `requestBody`, `responseBody`, `queryParams` — Zod-typed presets over `@thrty/validator`.
+- [`@thrty/http-error-handler`](https://github.com/thrty-org/thrty/tree/main/packages/http-error-handler) — preset over `@thrty/error-handler` that produces `APIGatewayProxyResult` shapes with message obfuscation.
+- [`@thrty/http-errors`](https://github.com/thrty-org/thrty/tree/main/packages/http-errors) — `BadRequestError`, `NotFoundError`, `UnauthorizedError`, etc.
+- [`@thrty/cors`](https://github.com/thrty-org/thrty/tree/main/packages/cors) — CORS preflight + response headers.
+- [`@thrty/http-header-normalizer`](https://github.com/thrty-org/thrty/tree/main/packages/http-header-normalizer) — normalize incoming header keys to a canonical case.
+- [`@thrty/http-json-body-parser`](https://github.com/thrty-org/thrty/tree/main/packages/http-json-body-parser) — parse JSON bodies into `event.jsonBody`.
+- [`@thrty/http-json-body-serializer`](https://github.com/thrty-org/thrty/tree/main/packages/http-json-body-serializer) — serialize handler responses to JSON.
+- [`@thrty/http-security-headers`](https://github.com/thrty-org/thrty/tree/main/packages/http-security-headers) — common HTTP security response headers.
+- [`@thrty/cookie-parser`](https://github.com/thrty-org/thrty/tree/main/packages/cookie-parser) — parse the `Cookie` header into `event.cookies`.
+
+## Deployment & tooling
+
+Read the `meta` your `@thrty/api` middlewares attach, and turn it into infrastructure / a client SDK.
+
+- [`@thrty/api-cdk`](https://github.com/thrty-org/thrty/tree/main/packages/api-cdk) — AWS CDK construct that builds an API Gateway from `@thrty/api` handlers. See [Full framework → CDK deployment](/full-framework/cdk-deployment).
+- [`@thrty/cli`](https://github.com/thrty-org/thrty/tree/main/packages/cli) — generates typed API clients from `@thrty/api` handlers. See [Full framework → Typed client](/full-framework/typed-client).
+
+## Testing
+
+- [`@thrty/testing`](https://github.com/thrty-org/thrty/tree/main/packages/testing) — `EventOf`, `ContextOf`, `fromArgs`, `ArgsOf`, `fromPartial`, `createMock` helpers. See [Testing](/testing).

@@ -1,0 +1,95 @@
+---
+title: HTTP via API Gateway
+---
+
+# HTTP via API Gateway
+
+Use this recipe when you want thrty's composition + type inference for an HTTP Lambda, but you're managing the API Gateway resources yourself (raw CDK, SAM, Serverless Framework, Terraform, …). For the opinionated path where the gateway is generated from your handler files, see [Full framework → HTTP APIs](/full-framework/http-apis).
+
+```shell
+npm install @thrty/core @thrty/inject @thrty/validator @thrty/http-error-handler @thrty/http-errors zod
+npm install --save-dev @types/aws-lambda
+```
+
+## A POST handler
+
+```typescript filename="createTodo.ts"
+import type { APIGatewayProxyHandler } from 'aws-lambda';
+import { compose, typesOf } from '@thrty/core';
+import { inject } from '@thrty/inject';
+import { httpErrorHandler } from '@thrty/http-error-handler';
+import { validate } from '@thrty/validator';
+import { NotFoundError } from '@thrty/http-errors';
+import { z } from 'zod';
+
+const TodoInput = z.object({ title: z.string().min(1) });
+
+const todosFactory = () => ({
+  create: async (input: z.infer<typeof TodoInput>) => ({
+    id: '1',
+    completed: false,
+    ...input,
+  }),
+});
+
+export const handler = compose(
+  typesOf<APIGatewayProxyHandler>(),
+  inject({ todos: todosFactory }),
+  httpErrorHandler(),
+  parseJson(),
+  validate(TodoInput, 'body'),
+)(async (event, context) => {
+  const todo = await context.deps.todos.create(event.body);
+  return { statusCode: 201, body: JSON.stringify(todo) };
+});
+```
+
+What each middleware contributes:
+
+- `typesOf<APIGatewayProxyHandler>()` — anchors the input as `APIGatewayProxyEvent`, the return as `APIGatewayProxyResult`.
+- `inject({ todos })` — adds `context.deps.todos` typed from the factory's return value.
+- `httpErrorHandler()` — catches throws from downstream middlewares (validation failures, `NotFoundError`, …) and formats them as `APIGatewayProxyResult`. Unknown errors become `500 Internal Server Error`.
+- `validate({ schema, select, path })` — JSON-parses the raw `event.body` string and validates it; the validated payload replaces `event.body`. Validation failures throw and are caught by `httpErrorHandler`.
+
+## CORS
+
+For browser callers, place [`@thrty/cors`](https://github.com/thrty-org/thrty/tree/main/packages/cors) **above** `httpErrorHandler` so CORS headers are attached to *every* response, including error responses:
+
+```typescript
+import { handleCors } from '@thrty/cors';
+
+compose(
+  typesOf<APIGatewayProxyHandler>(),
+  inject({ /* … */ }),
+  handleCors(),       // ← runs last on the way out, wraps every response
+  httpErrorHandler(), // ← turns throws into responses
+  validate(/* … */),
+)(/* … */);
+```
+
+`handleCors()` also handles `OPTIONS` preflight requests automatically — they short-circuit before reaching downstream middlewares.
+
+## Domain errors
+
+Throw any subclass of `BaseError` from `@thrty/http-errors`. `httpErrorHandler` formats them with their `statusCode` and a safe-by-default message:
+
+```typescript
+import { NotFoundError, ForbiddenError } from '@thrty/http-errors';
+
+// inside the handler
+if (!todo) throw new NotFoundError('Todo not found');
+if (!hasAccess) throw new ForbiddenError('Forbidden');
+```
+
+Unknown errors (anything not a `BaseError`) collapse to `500 Internal Server Error` with the message obfuscated, so internal details never leak to clients.
+
+## Owning the infrastructure
+
+This recipe doesn't attach any `meta` to your handler. You're free to wire it into:
+
+- CDK with `LambdaIntegration` and a hand-built `RestApi` or `HttpApi`.
+- SAM with `AWS::Serverless::Function` + `Api` events.
+- Serverless Framework with `events: [{ http: ... }]`.
+- Terraform with `aws_apigatewayv2_route` + `aws_lambda_function`.
+
+If you want the gateway *itself* to be derived from your handler files — routes, authorizers, request/response schemas — that's what [Full framework → HTTP APIs](/full-framework/http-apis) gives you.

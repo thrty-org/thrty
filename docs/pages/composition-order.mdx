@@ -1,0 +1,102 @@
+---
+title: Composition order
+---
+
+# Composition order
+
+The order you list middlewares inside `compose(...)` decides what each middleware can see and catch. `compose(A, B, C)(handler)` produces a function that, when called, executes:
+
+1. **Pre-phase** — top-down: `A`'s code that runs *before* it calls `next` → `B`'s pre-code → `C`'s pre-code → the actual `handler`.
+2. **Post-phase** — bottom-up: the actual handler returns → `C`'s post-code (after `await next(...)`) → `B`'s post-code → `A`'s post-code.
+
+This rule governs every other rule on the page.
+
+## A worked diagram
+
+For:
+
+```typescript
+compose(A, B, C)(handler);
+```
+
+…the call flows like this:
+
+```
+A.pre   ──┐
+          ▼
+        B.pre   ──┐
+                  ▼
+                C.pre   ──┐
+                          ▼
+                       handler
+                          │
+                C.post  ◄─┘
+                  ▲
+        B.post  ◄─┘
+          ▲
+A.post  ◄─┘
+```
+
+If `C` throws, the error escapes upward — `B` sees it, then `A` sees it. If `A` has a `try { return await next(event, context); } catch { … }`, it catches the throw. If `C` itself is the try/catch, it cannot catch *its own* upstream — only what's below it.
+
+## The catch-only-downstream rule
+
+An `errorHandler` only catches throws from middlewares registered *after* it. This makes placement matter — always place `errorHandler` above the middlewares it should catch.
+
+```typescript
+// ✅ errorHandler sits above validate → catches its throws
+compose(
+  typesOf<Handler<unknown>>(),
+  errorHandler({ onError }),
+  validate(schema),
+);
+
+// ❌ errorHandler sits below validate → throws escape past it
+compose(
+  typesOf<Handler<unknown>>(),
+  validate(schema),
+  errorHandler({ onError }),
+);
+```
+
+The `❌` example *looks* fine because `errorHandler` is listed second. But `validate` runs first in the pre-phase, and its throw bubbles upward (toward `typesOf`), not downward (toward `errorHandler`). The `errorHandler` is below it in the chain — i.e. closer to the actual handler — and never sees the throw at all.
+
+## Middlewares that catch internally
+
+Some middlewares wrap downstream calls with their own `try/catch`. `@thrty/sqs-record-iterator` with `batchItemFailures: true` is one — it catches per-record throws and converts them into a `SQSBatchResponse`. An `errorHandler` placed above the iterator will only see throws from the iterator itself (rare), not the per-record errors.
+
+```typescript
+compose(
+  typesOf<SQSHandler>(),
+  errorHandler({ onError }),                 // ← never sees per-record throws
+  forEachSqsRecord({ batchItemFailures: true }),
+  validate(schema),                          // throws here for one record
+);
+```
+
+When `validate` throws, `forEachSqsRecord`'s internal catch handles it; the outer `errorHandler` only sees `Promise.resolve(SQSBatchResponse)`.
+
+To intercept per-record errors before the iterator catches them, place `errorHandler` between the iterator and the throwing middleware:
+
+```typescript
+compose(
+  typesOf<SQSHandler>(),
+  forEachSqsRecord({ batchItemFailures: true }),
+  errorHandler({                             // ← inside the iterator
+    onError: (e) =>
+      e instanceof ValidationError ? undefined : Promise.reject(e),
+  }),
+  validate(schema),
+);
+```
+
+See [Use cases → SQS consumer](/use-cases/sqs-consumer) for the full pattern.
+
+## The general rule
+
+For any middleware that wraps with `try/catch` (or `.catch`, or `next().catch(…)`):
+
+- It can only see throws from middlewares **listed after it** in `compose`.
+- A middleware that catches its own internal errors (the iterator's `batchItemFailures`, retry loops, breakers) hides those errors from anything above it.
+
+When you debug an "unhandled error" you *thought* was caught, walk the chain in `compose` order and identify where the throw originates vs. where the catcher sits. If the catcher is upstream of the throw, move it.

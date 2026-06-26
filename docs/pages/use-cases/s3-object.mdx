@@ -1,0 +1,69 @@
+---
+title: S3 object trigger
+---
+
+# S3 object trigger
+
+Process objects from an S3 event. The event delivers a batch of `S3EventRecord`s; iterate them yourself or compose a per-record handler.
+
+```shell
+npm install @thrty/core @thrty/inject @thrty/error-handler
+npm install --save-dev @types/aws-lambda
+```
+
+## A typed handler
+
+```typescript filename="onObjectCreated.ts"
+import type { S3Handler } from 'aws-lambda';
+import { compose, typesOf } from '@thrty/core';
+import { inject } from '@thrty/inject';
+import { errorHandler } from '@thrty/error-handler';
+import type { S3Client } from '@aws-sdk/client-s3';
+
+const s3Factory = (): S3Client => /* … */;
+
+export const handler = compose(
+  typesOf<S3Handler>(),
+  inject({ s3: s3Factory }),
+  errorHandler(),
+)(async (event, context) => {
+  for (const record of event.Records) {
+    const { bucket, object } = record.s3;
+    await processObject(context.deps.s3, bucket.name, object.key);
+  }
+});
+```
+
+S3 doesn't ship a thrty iterator middleware today — the iteration is plain `for...of`. Validation of S3 records themselves is rarely useful (the shape is fixed and AWS-defined); you typically validate the *contents* of the object after reading it from S3.
+
+## Validating object contents
+
+If the object's body is JSON you control, fetch it and `validate` the parsed value:
+
+```typescript
+import { validate } from '@thrty/validator';
+import { GetObjectCommand } from '@aws-sdk/client-s3';
+import { z } from 'zod';
+
+const Report = z.object({
+  reportId: z.string(),
+  rows: z.array(z.object({ /* … */ })),
+});
+
+// Inside the handler, per record:
+const body = await context.deps.s3.send(new GetObjectCommand({
+  Bucket: record.s3.bucket.name,
+  Key:    record.s3.object.key,
+}));
+const text   = await body.Body!.transformToString();
+const parsed = JSON.parse(text);
+const report = await validateOnce(Report, parsed);   // small helper around validate()
+```
+
+For very large objects, prefer streaming + schema-aware parsing (e.g. JSON-line-by-line) over loading the whole body into memory.
+
+## Failure handling
+
+S3 will not retry a failed Lambda invocation by default — it's a fire-and-forget integration. If you need at-least-once delivery, use S3 → SNS → SQS → Lambda instead (and follow [SQS consumer](/use-cases/sqs-consumer)).
+
+For SQS-backed flows you get retries, partial-batch failures, and DLQ semantics. For direct S3 invocations, the default `errorHandler()` behavior (log + rethrow) at least surfaces failures to CloudWatch; consider routing those to a separate alarm or replay queue.

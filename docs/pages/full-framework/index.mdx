@@ -1,0 +1,44 @@
+---
+title: Full framework — Overview
+---
+
+# Full framework
+
+The Use cases section showed thrty as a middleware engine: you compose handlers, you own the infrastructure. The Full framework section is the opinionated path — one Lambda definition declares its trigger, validates its inputs, and emits `meta` that infrastructure tools read back.
+
+**Today, HTTP via API Gateway is implemented end-to-end.** You write `@thrty/api` middlewares (`get('/todos/{id}')`, `authorizer('default')`, `requestBody(zod)`, `responseBody(zod)`), and:
+
+- [`@thrty/api-cdk`](/full-framework/cdk-deployment) reads the meta and provisions the API Gateway, routes, integrations, and authorizer attachments.
+- [`@thrty/cli`](/full-framework/typed-client) walks the same meta and emits a typed client SDK.
+
+**The pattern generalizes beyond HTTP.** Any trigger source can be wrapped in a `from*(...)` middleware that attaches enough meta for a CDK construct to provision the source resources and bind them to the Lambda. Examples that fit the same pattern (not implemented today):
+
+- `fromEventRule({ source, detailType, ... })` — an EventBridge rule on a named bus.
+- `fromSqsQueue({ visibilityTimeoutSeconds, ... })` — an SQS queue with its event source mapping.
+- `fromS3Bucket({ event, prefix, ... })` — an S3 notification.
+- `fromSchedule({ cron, ... })` — an EventBridge scheduler.
+
+For now, only the HTTP track exists as a built artifact. The pages in this section describe that track in full.
+
+## When to use the full framework vs. use cases
+
+Pick the **Full framework** path when:
+
+- You want your handler files to be the single source of truth for both runtime behavior and infrastructure.
+- You're happy to commit to API Gateway (HTTP track) and CDK as your infra tool.
+- You want a typed client SDK generated for free.
+
+Pick the **[Use cases](/use-cases/http-api-gateway)** path when:
+
+- You already own your infrastructure pipeline (SAM, Serverless Framework, Terraform, raw CDK).
+- You're targeting a trigger thrty doesn't have a `from*(...)` middleware for yet.
+- You want lighter-weight composition without the meta wiring.
+
+The two paths share the same primitives — `inject`, `validate`, `errorHandler`, `compose`, the testing seam. You can mix them: a project can have HTTP handlers on the full framework path and SQS consumers on the use-cases path.
+
+## The four pages in this section
+
+- **[HTTP APIs](/full-framework/http-apis)** — write `@thrty/api` + `@thrty/api-zod` middlewares; get `event.requestBody`, `event.responseBody`, `event.routeParams`, `event.queryParams`, and the `meta` that powers the rest.
+- **[CDK deployment](/full-framework/cdk-deployment)** — `Api` construct, glob discovery, authorizers, custom domain mapping.
+- **[Typed client](/full-framework/typed-client)** — `thrty create-api-client` to generate an SDK, `thrty create-api-package` to ship one as an npm package.
+- **[Meta propagation](/full-framework/meta-propagation)** — the mechanism the construct and the CLI read.

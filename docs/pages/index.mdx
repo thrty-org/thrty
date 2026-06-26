@@ -1,0 +1,48 @@
+---
+title: Introduction
+---
+
+import { Hero, FeatureGrid } from '../components/Hero';
+
+<Hero />
+
+<FeatureGrid />
+
+## A taste
+
+```typescript
+import type { Handler } from 'aws-lambda';
+import { compose, typesOf } from '@thrty/core';
+import { inject } from '@thrty/inject';
+import { errorHandler } from '@thrty/error-handler';
+import { validate } from '@thrty/validator';
+import { z } from 'zod';
+
+const Notification = z.object({
+  id: z.string(),
+  amount: z.number(),
+  recipient: z.string().email(),
+});
+
+export const handler = compose(
+  typesOf<Handler<unknown>>(),
+  inject({ notifications: notificationsFactory }),
+  errorHandler(),
+  validate(Notification),
+)(async (event, context) => {
+  await context.deps.notifications.send(event);
+});
+```
+
+Every property the actual handler reaches for is contributed by a middleware higher up the chain — `context.deps.notifications` from `inject`, the typed `event` from `validate`. The handler's signature is inferred from the whole chain, not annotated by hand.
+
+## Where to next
+
+- **[Quickstart](/quickstart)** — build a typed, validated, tested handler in five short steps.
+- **[Composition order](/composition-order)** — pre/post-phase model and the `errorHandler` placement rule.
+- **[Testing](/testing)** — `.actual`, `EventOf`, `ContextOf`, `fromArgs`, `ArgsOf`, and what to test where.
+- **[Custom middlewares](/custom-middlewares)** — write your own; group recurring sets into reusable presets.
+- **[Use cases](/use-cases/http-api-gateway)** — recipes for HTTP, SQS, EventBridge, S3, and scheduled triggers.
+- **[Full framework](/full-framework)** — one Lambda definition, infrastructure and typed client included.
+- **[FAQ](/faq)** — when to use thrty, when not to, stability, migration.
+- **[Packages](/packages)** — every published package, grouped by category.

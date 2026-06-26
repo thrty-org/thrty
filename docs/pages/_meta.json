@@ -1,0 +1,11 @@
+{
+  "index": "Introduction",
+  "quickstart": "Quickstart",
+  "composition-order": "Composition order",
+  "testing": "Testing",
+  "custom-middlewares": "Custom middlewares",
+  "use-cases": "Use cases",
+  "full-framework": "Full framework",
+  "faq": "FAQ",
+  "packages": "Packages"
+}

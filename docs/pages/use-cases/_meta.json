@@ -1,0 +1,7 @@
+{
+  "http-api-gateway": "HTTP via API Gateway",
+  "sqs-consumer": "SQS consumer",
+  "eventbridge": "EventBridge handler",
+  "s3-object": "S3 object trigger",
+  "scheduled": "Scheduled / cron"
+}

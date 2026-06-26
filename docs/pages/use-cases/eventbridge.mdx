@@ -1,0 +1,87 @@
+---
+title: EventBridge handler
+---
+
+# EventBridge handler
+
+Process an event delivered by an EventBridge rule. Anchor on `EventBridgeHandler<TDetailType>` from `@thrty/aws-lambda` (drop-in replacement for `aws-lambda`'s version, with defaults for the `TDetail` and `TResult` generics) and validate the `detail` payload.
+
+```shell
+npm install @thrty/core @thrty/aws-lambda @thrty/inject @thrty/validator @thrty/error-handler zod
+npm install --save-dev @types/aws-lambda
+```
+
+## A typed `detail` payload
+
+```typescript filename="onOrderPlaced.ts"
+import { compose, typesOf } from '@thrty/core';
+import type { EventBridgeHandler } from '@thrty/aws-lambda';
+import { inject } from '@thrty/inject';
+import { errorHandler } from '@thrty/error-handler';
+import { validate } from '@thrty/validator';
+import { z } from 'zod';
+
+const OrderPlaced = z.object({
+  orderId: z.string(),
+  total: z.number(),
+});
+
+const fulfillmentFactory = () => ({
+  enqueue: async (order: z.infer<typeof OrderPlaced>) => { /* … */ },
+});
+
+export const handler = compose(
+  typesOf<EventBridgeHandler<'OrderPlaced'>>(),
+  inject({ fulfillment: fulfillmentFactory }),
+  errorHandler(),
+  validate(OrderPlaced, 'detail'),
+)(async (event, context) => {
+  // `event.detail` is `{ orderId: string; total: number }`
+  await context.deps.fulfillment.enqueue(event.detail);
+});
+```
+
+What's happening:
+
+- `EventBridgeHandler<'OrderPlaced'>` — the literal `'OrderPlaced'` matches the `detail-type` from the EventBridge rule pattern. `TDetail` defaults to `unknown` (we validate it explicitly in step 4) and `TResult` defaults to `void`.
+- `validate(OrderPlaced, 'detail')` — positional path form. Reads `event.detail`, validates against the schema, writes the typed value back to `event.detail`. The rest of the event (`source`, `detail-type`, `time`, `id`, `resources`, `region`, `account`) is preserved untouched.
+
+## Failure handling
+
+EventBridge retries failed invocations according to your rule's `RetryPolicy` (max attempts, max event age). If you've configured a dead-letter queue on the rule, exhausted retries land there.
+
+The default `errorHandler()` behavior — log and rethrow — is what you want here: a throw signals failure to EventBridge so retries / DLQ fire. Only switch to `onError: () => undefined` (substitute a successful result) for errors you *know* are permanent (malformed payload, idempotency rejection, …) and don't want retried.
+
+```typescript
+import { ValidationError } from '@thrty/validator';
+
+errorHandler({
+  onError: (error) =>
+    error instanceof ValidationError
+      ? undefined                  // permanent → don't retry
+      : Promise.reject(error),     // bubble → EventBridge retries
+});
+```
+
+## Multiple `detail-type`s on one Lambda
+
+If your rule routes multiple `detail-type`s to the same Lambda, type the handler as plain `EventBridgeHandler` (no generics — defaults give you `string` detail-type and `unknown` detail) and discriminate inside, using `validate` with a discriminated-union schema:
+
+```typescript
+const Event = z.discriminatedUnion('detail-type', [
+  z.object({ 'detail-type': z.literal('OrderPlaced'),    detail: OrderPlaced }),
+  z.object({ 'detail-type': z.literal('OrderCancelled'), detail: OrderCancelled }),
+]);
+
+compose(
+  typesOf<EventBridgeHandler>(),
+  inject({ /* … */ }),
+  errorHandler(),
+  validate({ schema: Event, select: (e) => ({ 'detail-type': e['detail-type'], detail: e.detail }) }),
+)(async (event, context) => {
+  switch (event['detail-type']) {
+    case 'OrderPlaced':    /* event.detail is OrderPlaced */    break;
+    case 'OrderCancelled': /* event.detail is OrderCancelled */ break;
+  }
+});
+```

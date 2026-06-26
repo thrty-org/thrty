@@ -1,0 +1,135 @@
+---
+title: Custom middlewares
+---
+
+# Custom middlewares
+
+`Middleware<...>` is part of `@thrty/core`'s public surface. You can write your own middlewares the same way thrty's built-in ones are written, and combine multiple middlewares into reusable presets.
+
+## The `Middleware` type
+
+```typescript
+import type { Context as LambdaContext } from 'aws-lambda';
+
+export type Middleware<
+  TRequiredEvent,
+  TNextEvent,
+  TExpectedResult,
+  TTransformedResult,
+  TRequiredContext = LambdaContext,
+  TNextContext = TRequiredContext,
+> = (
+  next: (event: TNextEvent, context: TNextContext) => TTransformedResult,
+) => (event: TRequiredEvent, context: TRequiredContext) => TExpectedResult;
+```
+
+A middleware takes the *downstream* handler and returns an *upstream* handler. In between, it can:
+
+- **Augment the event** — `TNextEvent = TRequiredEvent & { newKey: T }`. The actual handler sees the extra key.
+- **Augment the context** — `TNextContext = TRequiredContext & { newKey: T }`. Same idea, on the second handler argument. `@thrty/inject` works this way.
+- **Intercept the result** — `TExpectedResult` differs from `TTransformedResult`. Catch throws, wrap the return, attach headers. `@thrty/error-handler` works this way.
+
+The two context parameters default to AWS Lambda's `Context` and to each other, so middlewares that only touch the event don't need to declare them.
+
+## A minimal example
+
+A `withTiming()` middleware that wraps the next handler and logs how long it took. It doesn't change the event or the result — pure interception.
+
+```typescript filename="withTiming.ts"
+import type { Middleware } from '@thrty/core';
+
+export const withTiming = <E, C, R>(): Middleware<E, E, Promise<R>, Promise<R>, C, C> =>
+  (next) => async (event, context) => {
+    const start = Date.now();
+    try {
+      return await next(event, context);
+    } finally {
+      console.log(`elapsed=${Date.now() - start}ms`);
+    }
+  };
+```
+
+Drop it into any chain:
+
+```typescript
+import { compose, typesOf } from '@thrty/core';
+import type { Handler } from 'aws-lambda';
+import { withTiming } from './withTiming';
+
+export const handler = compose(
+  typesOf<Handler<unknown>>(),
+  withTiming(),
+  // …rest of the chain…
+)(async (event) => { /* … */ });
+```
+
+## Grouping middlewares
+
+`compose(...)` itself returns a `Middleware<...>`. That means you can package a recurring set of middlewares as a preset and drop the preset into another `compose(...)` chain as if it were a single middleware.
+
+To keep the preset usable **anywhere** in an outer chain — not only at the top — declare the event and result types as **generics** on the preset function and feed them into `types<TEvent, TResult>()` inside the inner `compose`. The generics let upstream middlewares' augmentations flow through the preset; without them, type inference at the preset's position collapses.
+
+```typescript filename="apiGatewayBaseline.ts"
+import { compose, types } from '@thrty/core';
+import { handleCors } from '@thrty/cors';
+import { httpErrorHandler } from '@thrty/http-error-handler';
+import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+
+export const apiGatewayBaseline = <
+  TEvent extends APIGatewayProxyEvent,
+  TResult extends Promise<APIGatewayProxyResult>,
+>() =>
+  compose(
+    types<TEvent, TResult>(),
+    handleCors(),
+    httpErrorHandler(),
+  );
+```
+
+The `TEvent extends APIGatewayProxyEvent` constraint says *"the upstream chain must give me at least an APIGatewayProxyEvent — but I'll preserve whatever extra fields it has."* Same idea for the result.
+
+Use the preset as if it were one middleware. It can sit at the top:
+
+```typescript filename="createTodo.ts"
+import { compose, typesOf } from '@thrty/core';
+import type { APIGatewayProxyHandler } from 'aws-lambda';
+import { requestBody } from '@thrty/api-zod';
+import { apiGatewayBaseline } from './apiGatewayBaseline';
+import { TodoInput } from './schemas';
+
+export const handler = compose(
+  typesOf<APIGatewayProxyHandler>(),
+  apiGatewayBaseline(),
+  requestBody(TodoInput),
+)(async (event) => {
+  return { statusCode: 201, body: JSON.stringify({ id: '1' }) };
+});
+```
+
+…or further down, after an upstream middleware has already augmented the event:
+
+```typescript
+export const handler = compose(
+  typesOf<APIGatewayProxyHandler>(),
+  inject({ todos: todosFactory }),       // augments context
+  apiGatewayBaseline(),                  // TEvent inferred from upstream
+  requestBody(TodoInput),
+)(async (event, context) => {
+  return { statusCode: 201, body: JSON.stringify(await context.deps.todos.create(event.requestBody)) };
+});
+```
+
+The chain that actually runs is `typesOf → inject → handleCors → httpErrorHandler → requestBody → handler` — the preset's middlewares are spliced into the outer chain transparently, and types flow through.
+
+This pattern is how `@thrty/api-zod` and `@thrty/http-error-handler` are built internally: each is a thin `compose(...)` of `@thrty/validator` or `@thrty/error-handler` plus the HTTP-shape adapter. You can do the same for any recurring set of middlewares in your project.
+
+## Attaching meta
+
+If your middleware (or your preset) should be discoverable by `@thrty/api-cdk` or `@thrty/cli`, attach a `meta` object to it:
+
+```typescript
+const inner = (next) => /* … */;
+return Object.assign(inner, { meta: { yourKey: yourValue } });
+```
+
+`compose` shallow-merges `meta` from every middleware in the chain onto the composed handler. See [Full framework → Meta propagation](/full-framework/meta-propagation) for the full mechanism and the keys today's middlewares use.

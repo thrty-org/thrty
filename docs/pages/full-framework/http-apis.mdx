@@ -1,0 +1,140 @@
+---
+title: HTTP APIs
+---
+
+# HTTP APIs
+
+When you commit to the full framework, three packages do most of the work:
+
+- **`@thrty/api`** — `get` / `post` / `put` / `patch` / `delete` for routing, `authorizer` for IAM/JWT/custom authorizers, `routeParams` for path parameters.
+- **`@thrty/api-zod`** — `requestBody`, `responseBody`, `queryParams` — Zod-typed presets that map `ZodError` issues onto `ZodBadRequestError`.
+- **`@thrty/http-error-handler`** — preset over `@thrty/error-handler` that produces `APIGatewayProxyResult` shapes with message obfuscation.
+
+```shell
+npm install @thrty/api @thrty/api-zod @thrty/http-error-handler @thrty/http-errors @thrty/inject zod
+npm install --save-dev @types/aws-lambda
+```
+
+## A typed POST handler
+
+```typescript filename="createTodoLambda.ts"
+import type { APIGatewayProxyHandler } from 'aws-lambda';
+import { compose, typesOf } from '@thrty/core';
+import { inject } from '@thrty/inject';
+import { httpErrorHandler } from '@thrty/http-error-handler';
+import { post, authorizer } from '@thrty/api';
+import { requestBody, responseBody } from '@thrty/api-zod';
+import { z } from 'zod';
+
+const TodoInput = z.object({ title: z.string().min(1) });
+const Todo = z.object({
+  id: z.string(),
+  title: z.string(),
+  completed: z.boolean(),
+});
+
+const todosFactory = () => ({
+  create: async (input: z.infer<typeof TodoInput>) => ({
+    id: '1',
+    completed: false,
+    ...input,
+  }),
+});
+
+export const handler = compose(
+  typesOf<APIGatewayProxyHandler>(),
+  inject({ todos: todosFactory }),
+  httpErrorHandler(),
+  post('/todos'),
+  authorizer('default'),
+  requestBody(TodoInput),
+  responseBody(Todo),
+)(async (event, context) => {
+  const todo = await context.deps.todos.create(event.requestBody);
+  return { statusCode: 201, body: todo };
+});
+```
+
+What each middleware contributes:
+
+- `post('/todos')` — declares the route. Attaches `meta.endpoint` so [CDK deployment](/full-framework/cdk-deployment) and [Typed client](/full-framework/typed-client) can find it.
+- `authorizer('default')` — names the authorizer to attach in API Gateway. Attaches `meta.authorizerName`.
+- `requestBody(TodoInput)` — JSON-parses + validates `event.body`, writes the typed value to `event.requestBody`. Throws `ZodBadRequestError` on failure.
+- `responseBody(Todo)` — declares the response type. Returning `{ statusCode: 201, body: todo }` is checked at compile time against the schema. Pass `{ validate: true }` as a second argument to also enforce at runtime.
+- `httpErrorHandler()` — catches thrown `@thrty/http-errors` and `ZodBadRequestError`, formats them as `APIGatewayProxyResult`. Unknown errors become `500 Internal Server Error`.
+
+## Placement rule
+
+Place `httpErrorHandler` above every middleware that may throw — `post()` (404 on route mismatch), `requestBody` (400 on invalid input), and your actual handler (any `NotFoundError`, `ForbiddenError`, …). Errors only travel upward, so the catcher must be upstream of the thrower.
+
+For CORS, place [`@thrty/cors`](https://github.com/thrty-org/thrty/tree/main/packages/cors) **above** `httpErrorHandler` so CORS headers reach every response, including errors:
+
+```typescript
+compose(
+  typesOf<APIGatewayProxyHandler>(),
+  inject({ /* … */ }),
+  handleCors(),       // ← wraps every response with CORS headers
+  httpErrorHandler(), // ← turns throws into responses
+  post('/todos'),
+  /* … */
+);
+```
+
+## Validation errors
+
+`requestBody` and `queryParams` throw `ZodBadRequestError` on failure. `httpErrorHandler` recognizes it and produces:
+
+```json
+{
+  "statusCode": 400,
+  "body": "{\"message\":\"Invalid request body\",\"issues\":[…]}"
+}
+```
+
+To customize the error type, pass `badRequestErrorFactory`:
+
+```typescript
+requestBody(TodoInput, {
+  badRequestErrorFactory: (zodError) => new MyBadRequestError(zodError.issues),
+});
+```
+
+## Query parameters
+
+```typescript
+import { queryParams } from '@thrty/api-zod';
+
+compose(
+  /* … */
+  queryParams(z.object({
+    limit: z.string().transform(Number),
+    sortBy: z.array(z.string()).optional(),
+  })),
+)(async (event) => {
+  event.queryParams.limit;   // number
+  event.queryParams.sortBy;  // string[] | undefined
+});
+```
+
+## Route parameters
+
+`get('/todos/{todoId}')` exposes `event.routeParams.todoId` typed as `string`. Multiple parameters work the same way — the type is inferred from the template literal in the path.
+
+```typescript
+compose(
+  typesOf<APIGatewayProxyHandler>(),
+  inject({ todos: todosFactory }),
+  httpErrorHandler(),
+  get('/todos/{todoId}'),
+)(async (event, context) => {
+  const todo = await context.deps.todos.findById(event.routeParams.todoId);
+  if (!todo) throw new NotFoundError('Todo not found');
+  return { statusCode: 200, body: todo };
+});
+```
+
+## Where to next
+
+- **[CDK deployment](/full-framework/cdk-deployment)** — let the `Api` construct read this meta and generate your API Gateway.
+- **[Typed client](/full-framework/typed-client)** — generate a typed SDK from the same handler files.
+- **[Meta propagation](/full-framework/meta-propagation)** — the mechanism powering both.

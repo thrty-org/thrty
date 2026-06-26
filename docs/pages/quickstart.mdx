@@ -1,0 +1,230 @@
+---
+title: Quickstart
+---
+
+import { Callout } from 'nextra/components';
+
+# Quickstart
+
+This Quickstart builds a Lambda handler in five steps, adding **one middleware per step**. By the end you'll have a typed, validated handler with injected dependencies and a unit test against it.
+
+The example processes a `NotificationRequest` — an envelope with a stable `id` and `requestedAt`, plus an opaque `payload` that gets validated at the boundary. How the envelope reaches your Lambda is your call (Step Functions task, async invoke, EventBridge with a target transformer, an SQS message body); the composition pattern is the same. Once you've finished, head to [Use cases](/use-cases/http-api-gateway) for recipes wired to specific triggers, or [Full framework](/full-framework) if you want to declare your trigger inside `compose` and have CDK plus a typed client derived from the same definition.
+
+## 1. Install
+
+```shell
+npm install @thrty/core
+npm install --save-dev @types/aws-lambda
+```
+
+`@thrty/core` is the compose engine and its types. Pass `typesOf<...>()` first so the chain knows the input event and expected return type — we anchor it on `Handler<NotificationRequest>`, an envelope shape whose metadata (`id`, `requestedAt`) is trusted and whose `payload` is opaque until the next step validates it.
+
+```typescript filename="notificationHandler.ts"
+import type { Handler } from 'aws-lambda';
+import { compose, typesOf } from '@thrty/core';
+
+type NotificationRequest = {
+  id: string;
+  requestedAt: string;
+  payload: unknown;
+};
+
+export const handler = compose(
+  typesOf<Handler<NotificationRequest>>(),
+)(async (event) => {
+  console.log(`processing request ${event.id} from ${event.requestedAt}`);
+});
+```
+
+The envelope fields (`event.id`, `event.requestedAt`) are typed from the start — the actual handler can use them for logging, tracing, idempotency. `event.payload` is `unknown` on purpose: it comes from outside the trust boundary, and the next step adds the schema that narrows it.
+
+## 2. Validate
+
+```shell
+npm install @thrty/validator zod
+```
+
+`validate` is a generic [Standard Schema](https://standardschema.dev) middleware — Zod 3.24+, Valibot, ArkType, and any other Standard-Schema-compliant library work without adapters. Passing a path as the second argument validates the value at that path and writes the typed result back, leaving the rest of the event untouched.
+
+```typescript filename="notificationHandler.ts" {3-4,12-15,19,21-23}
+import type { Handler } from 'aws-lambda';
+import { compose, typesOf } from '@thrty/core';
+import { validate } from '@thrty/validator';
+import { z } from 'zod';
+
+type NotificationRequest = {
+  id: string;
+  requestedAt: string;
+  payload: unknown;
+};
+
+const Notification = z.object({
+  amount: z.number(),
+  recipient: z.string().email(),
+});
+
+export const handler = compose(
+  typesOf<Handler<NotificationRequest>>(),
+  validate(Notification, 'payload'),
+)(async (event) => {
+  console.log(
+    `request ${event.id} — sending ${event.payload.amount} to ${event.payload.recipient}`,
+  );
+});
+```
+
+The envelope's shape (`id`, `requestedAt`) is fixed and trusted — typed in step 1. The payload comes from outside and needs runtime enforcement: `validate(Notification, 'payload')` parses it, throws `ValidationError` on mismatch, and writes the typed result back to `event.payload` so the actual handler reads it without a cast.
+
+## 3. Handle errors
+
+```shell
+npm install @thrty/error-handler
+```
+
+`validate` throws `ValidationError` on bad input. `errorHandler` catches that throw — and every other throw from middlewares listed **after** it in `compose`. By default it logs the error and rethrows it, which is what most event-triggered Lambdas want (the trigger's retry / DLQ semantics rely on the invocation failing).
+
+```typescript filename="notificationHandler.ts" {3,20}
+import type { Handler } from 'aws-lambda';
+import { compose, typesOf } from '@thrty/core';
+import { errorHandler } from '@thrty/error-handler';
+import { validate } from '@thrty/validator';
+import { z } from 'zod';
+
+type NotificationRequest = {
+  id: string;
+  requestedAt: string;
+  payload: unknown;
+};
+
+const Notification = z.object({
+  amount: z.number(),
+  recipient: z.string().email(),
+});
+
+export const handler = compose(
+  typesOf<Handler<NotificationRequest>>(),
+  errorHandler(),
+  validate(Notification, 'payload'),
+)(async (event) => {
+  console.log(
+    `request ${event.id} — sending ${event.payload.amount} to ${event.payload.recipient}`,
+  );
+});
+```
+
+<Callout type="warning">
+  Place `errorHandler` **above** every middleware it should catch — only throws from middlewares listed *after* `errorHandler` in `compose` reach it. See [Composition order](/composition-order) for the full diagram.
+</Callout>
+
+## 4. Inject dependencies
+
+```shell
+npm install @thrty/inject
+```
+
+So far the actual handler only consumed the event. `inject` wires services it can call — and adds them as `context.deps.*` with full type inference, no annotation. Factories run lazily on first access and the result is cached for the lifetime of the Lambda instance, which is exactly the lifecycle AWS SDK clients want.
+
+```typescript filename="notificationHandler.ts" {3,7,22,26-29}
+import type { Handler } from 'aws-lambda';
+import { compose, typesOf } from '@thrty/core';
+import { inject } from '@thrty/inject';
+import { errorHandler } from '@thrty/error-handler';
+import { validate } from '@thrty/validator';
+import { z } from 'zod';
+import { SNS } from '@aws-sdk/client-sns';
+
+type NotificationRequest = {
+  id: string;
+  requestedAt: string;
+  payload: unknown;
+};
+
+const Notification = z.object({
+  amount: z.number(),
+  recipient: z.string().email(),
+});
+
+export const handler = compose(
+  typesOf<Handler<NotificationRequest>>(),
+  inject({ sns: () => new SNS() }),
+  errorHandler(),
+  validate(Notification, 'payload'),
+)(async (event, context) => {
+  await context.deps.sns.publish({
+    TopicArn: process.env.TOPIC_ARN,
+    Message: JSON.stringify(event.payload),
+  });
+});
+```
+
+Hover `context.deps.sns` in your editor — its type is the `SNS` client, inferred from the factory's return value, no annotation needed. Add another provider, and `context.deps` widens automatically.
+
+## 5. Test
+
+```shell
+npm install --save-dev @thrty/testing
+```
+
+`compose(…)(handler)` exposes the actual handler as `.actual`. `fromArgs<typeof handler>(eventPartial, contextPartial)` builds the `[event, context, callback]` tuple with both partials typed against the actual handler's signature — same `typeof handler` convention as `EventOf` and `ContextOf` — and `createMock<SNS>()` produces a typed mock of every method on the SNS client.
+
+```typescript filename="notificationHandler.spec.ts"
+import { createMock, fromArgs } from '@thrty/testing';
+import { SNS } from '@aws-sdk/client-sns';
+import { handler } from './notificationHandler';
+
+it('publishes the notification', async () => {
+  const sns = createMock<SNS>();
+  sns.publish.mockResolvedValue({ MessageId: 'm_1' });
+
+  await handler.actual(...fromArgs<typeof handler>(
+    {
+      id: 'n_1',
+      requestedAt: '2026-06-26T10:00:00Z',
+      payload: { amount: 42, recipient: 'a@example.com' },
+    },
+    { deps: { sns } },
+  ));
+
+  expect(sns.publish).toHaveBeenCalledWith(expect.objectContaining({
+    Message: JSON.stringify({
+      amount: 42,
+      recipient: 'a@example.com',
+    }),
+  }));
+});
+```
+
+Spread the tuple into `handler.actual(...)` to call the actual handler directly — the chain is skipped, so `inject`, `errorHandler`, and `validate` don't run. To exercise the full chain instead, see [Testing](/testing).
+
+To share a fixture across `it` blocks, declare `let args: ArgsOf<typeof handler>` and assign it in `beforeEach`.
+
+## Where to next
+
+You've composed a typed, validated handler with injected dependencies and a unit test against it. The chain — `typesOf` → `inject` → `errorHandler` → `validate` → handler — is the canonical shape for any trigger.
+
+### Use cases
+
+Apply the same primitives to concrete AWS Lambda triggers:
+
+- **[HTTP via API Gateway](/use-cases/http-api-gateway)** — `APIGatewayProxyHandler` + `httpErrorHandler` + `cors`. Bring your own infrastructure.
+- **[SQS consumer](/use-cases/sqs-consumer)** — `forEachSqsRecord` with partial-batch failure handling.
+- **[EventBridge handler](/use-cases/eventbridge)** — typed `detail` payloads from your bus.
+- **[S3 object trigger](/use-cases/s3-object)** — process a batch of `S3EventRecord`s.
+- **[Scheduled / cron](/use-cases/scheduled)** — `ScheduledHandler` for `EventBridge Scheduler` and CloudWatch cron rules.
+
+### Going deeper
+
+- **[Composition order](/composition-order)** — pre/post-phase model and the `errorHandler` placement rule.
+- **[Testing](/testing)** — `.actual`, `EventOf`, `ContextOf`, `fromArgs`, `ArgsOf`, and what to test where.
+- **[Custom middlewares](/custom-middlewares)** — the `Middleware<...>` type, a worked example, and how to group recurring middleware sets into reusable presets.
+
+### Full framework
+
+When you want trigger + infrastructure + typed client to come from one definition:
+
+- **[Full framework → Overview](/full-framework)** — the meta-driven pattern. Today implemented end-to-end for HTTP via API Gateway; designed to extend to other trigger sources.
+
+### Reference
+
+- **[Packages](/packages)** — every package, grouped, with links to per-package READMEs.
+- **[FAQ](/faq)** — when to use thrty, when not to, stability, schema libraries, migration.

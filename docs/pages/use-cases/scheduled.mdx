@@ -1,0 +1,45 @@
+---
+title: Scheduled / cron
+---
+
+# Scheduled / cron
+
+A Lambda triggered by an EventBridge scheduler (or a legacy CloudWatch cron rule). The event has no payload to validate; the value is the dependency-injection + error-handling chain.
+
+```shell
+npm install @thrty/core @thrty/inject @thrty/error-handler
+npm install --save-dev @types/aws-lambda
+```
+
+## A typed handler
+
+```typescript filename="dailyDigest.ts"
+import type { ScheduledHandler } from 'aws-lambda';
+import { compose, typesOf } from '@thrty/core';
+import { inject } from '@thrty/inject';
+import { errorHandler } from '@thrty/error-handler';
+
+const digestFactory = () => ({
+  send: async () => { /* …generate + deliver… */ },
+});
+
+export const handler = compose(
+  typesOf<ScheduledHandler>(),
+  inject({ digest: digestFactory }),
+  errorHandler(),
+)(async (event, context) => {
+  await context.deps.digest.send();
+});
+```
+
+`ScheduledHandler` types `event` as `ScheduledEvent` — useful fields are `id`, `time`, and `resources` (the source rule ARN). There's no `detail` to validate.
+
+## Failure handling
+
+EventBridge Scheduler retries failed invocations according to the schedule's `RetryPolicy` (max attempts, max event age). If a dead-letter queue is configured on the schedule, exhausted retries land there.
+
+The default `errorHandler()` (log + rethrow) is what you want: throw on failure so the scheduler retries / DLQs. Only switch to `onError: () => undefined` for errors you *know* are permanent.
+
+## Triggering by `aws.events` vs EventBridge Scheduler
+
+CloudWatch Events / EventBridge Rules with a cron expression deliver an `aws.events` `ScheduledEvent`. EventBridge Scheduler delivers the same shape today — both are typed as `ScheduledHandler` from `aws-lambda`. Prefer EventBridge Scheduler for new work: it supports timezones, flexible windows, one-time schedules, and per-schedule DLQ configuration.

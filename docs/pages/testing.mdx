@@ -1,0 +1,109 @@
+---
+title: Testing
+---
+
+# Testing
+
+`compose(…)(handler)` returns a function that also has an `actual` property pointing to the raw, unwrapped handler — the **testing seam**:
+
+```typescript
+const composed = compose(A, B, C)(async (event, context) => { /* … */ });
+
+composed;          // the wrapped function, runs A → B → C → handler
+composed.actual;   // the raw handler, ignoring middlewares
+```
+
+`actual` is the testing seam. Unit tests reach past the middleware chain to call the business logic directly.
+
+## Calling `.actual` cleanly: `fromArgs` and `ArgsOf`
+
+`.actual` accepts the full augmented event and context the actual handler sees. Building those by hand (a `RecursivePartial<EventOf<…>>` plus a `RecursivePartial<ContextOf<…>>`) is noisy. `fromArgs<typeof handler>(eventPartial, contextPartial)` builds the spread tuple for you, typed against the actual handler's signature:
+
+```typescript
+import { createMock, fromArgs } from '@thrty/testing';
+import { handler, type NotificationService } from './notificationHandler';
+
+it('sends the notification', async () => {
+  const notificationService = createMock<NotificationService>();
+  notificationService.send.mockResolvedValue();
+
+  await handler.actual(...fromArgs<typeof handler>(
+    { id: 'n_1', amount: 42, recipient: 'a@b.c' },
+    { deps: { notificationService } },
+  ));
+});
+```
+
+The same `typeof handler` convention works for `EventOf<typeof handler>` and `ContextOf<typeof handler>` — `fromArgs` reuses both internally. To share a fixture across `it` blocks, declare it with the matching `ArgsOf<typeof handler>` type and assign in `beforeEach`:
+
+```typescript
+import { ArgsOf, fromArgs } from '@thrty/testing';
+
+let args: ArgsOf<typeof handler>;
+
+beforeEach(() => {
+  args = fromArgs<typeof handler>(
+    { id: 'n_1', amount: 42, recipient: 'a@b.c' },
+    { deps: { notificationService } },
+  );
+});
+
+it('…', async () => {
+  await handler.actual(...args);
+});
+```
+
+## The primitives `fromArgs` is built on
+
+If you need finer control, the helpers `fromArgs` composes are also exported directly:
+
+```typescript
+type EventOf<T extends { actual: (...args: any[]) => any }>   = Parameters<T['actual']>[0];
+type ContextOf<T extends { actual: (...args: any[]) => any }> = Parameters<T['actual']>[1];
+```
+
+Both extract a parameter of the `.actual` signature. `fromPartial<T>(…)` is a typed cast around a `RecursivePartial<T>` so you only declare the keys your test actually reads:
+
+```typescript
+const event = fromPartial<EventOf<typeof handler>>({ id: 'n_1', amount: 42 });
+```
+
+## Why test through `.actual` and not the whole chain?
+
+Two reasons:
+
+1. **Speed.** Skipping the chain means no event-shape wrapping, no JSON parsing, no validation, no error mapping. Tests run as fast as the actual handler permits.
+2. **Boundary.** Each middleware is unit-tested in its own package. Re-testing them in your handler test means re-asserting behavior that thrty already covers — and your test breaks every time the middleware adds a corner case you don't care about.
+
+The trade-off is that your unit tests don't catch chain-level mistakes: a missing middleware, wrong order, an `errorHandler` that doesn't see what you expected. Cover those with one integration-style test per handler that invokes the composed function with a fully-shaped event.
+
+## When `.actual` isn't enough
+
+Some failure modes only show at the chain level:
+
+- `errorHandler` ordering — does it catch what you expect, or did a downstream `try/catch` swallow it first?
+- `forEachSqsRecord` + `batchItemFailures` — does a single record's failure ACK the siblings?
+- CORS headers on error responses — does the CORS middleware run *after* the error handler on the way out?
+
+For these, exercise the **full chain** by spreading `args<TInput>(eventPartial)` into the composed `handler` (not `.actual`). `args` takes a single event-type generic and uses the default Lambda `Context` — the chain re-establishes context augmentations at runtime via `inject`.
+
+```typescript
+import { args } from '@thrty/testing';
+
+await handler(...args<SQSEvent>({ Records: [/* … */] }));
+```
+
+## Re-composing in tests
+
+You can also re-compose at test time — for example, swap in a stricter middleware than production uses to assert preconditions:
+
+```typescript
+const stricter = compose(
+  validate(StricterSchema), // strictly-typed test fixture
+  /* … */
+)(handler.actual);
+
+await stricter(...fromArgs<typeof handler>(eventPartial, contextPartial));
+```
+
+This is rarely needed — `fromArgs<typeof handler>(…)` covers most cases — but it's there when you need finer control.

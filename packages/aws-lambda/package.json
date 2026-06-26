@@ -1,0 +1,34 @@
+{
+  "name": "@thrty/aws-lambda",
+  "version": "3.0.0-alpha.11",
+  "author": "Robin Baum",
+  "license": "ISC",
+  "description": "Drop-in type overrides for aws-lambda — sensible generic defaults and real-world accuracy fixes.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thrty-org/thrty.git",
+    "directory": "packages/aws-lambda"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "import": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "require": {
+      "types": "./dist/index.d.cts",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@types/aws-lambda": "^8.10.148",
+    "aws-lambda": "^1.0.7"
+  }
+}

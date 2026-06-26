@@ -1,0 +1,165 @@
+:root {
+  --thrty-brand: #8c52ff;
+  --thrty-brand-soft: rgba(140, 82, 255, 0.12);
+  --thrty-brand-strong: #6d3df0;
+}
+
+body {
+  font-feature-settings: 'ss01', 'cv11', 'kern';
+}
+
+/* Headings */
+.nextra-content h1,
+.nextra-content h2,
+.nextra-content h3 {
+  letter-spacing: -0.02em;
+}
+
+/* Hero */
+.thrty-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 3.5rem 1rem 2.5rem;
+  margin-bottom: 3rem;
+  border-bottom: 1px solid var(--thrty-brand-soft);
+}
+
+.thrty-hero__logo {
+  margin-bottom: 1.25rem;
+  filter: drop-shadow(0 4px 24px rgba(140, 82, 255, 0.35));
+}
+
+.thrty-hero__title {
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  margin: 0 0 1rem;
+  background: linear-gradient(135deg, var(--thrty-brand) 0%, var(--thrty-brand-strong) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.thrty-hero__tagline {
+  max-width: 38rem;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.7);
+  margin: 0 0 1.75rem;
+}
+
+html.dark .thrty-hero__tagline {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.thrty-hero__tagline code {
+  font-size: 0.9em;
+  background: var(--thrty-brand-soft);
+  color: var(--thrty-brand-strong);
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+html.dark .thrty-hero__tagline code {
+  color: #c2a8ff;
+}
+
+.thrty-hero__actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.thrty-hero__cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  text-decoration: none !important;
+  transition: all 120ms ease;
+}
+
+.thrty-hero__cta:hover {
+  background: var(--thrty-brand-soft);
+}
+
+.thrty-hero__cta--primary {
+  background: var(--thrty-brand);
+  color: #fff;
+}
+
+.thrty-hero__cta--primary:hover {
+  background: var(--thrty-brand-strong);
+}
+
+.thrty-hero__meta {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: rgba(0, 0, 0, 0.55);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+html.dark .thrty-hero__meta {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* Feature grid */
+.thrty-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin: 2.5rem 0 3rem;
+}
+
+.thrty-feature {
+  padding: 1.25rem 1.25rem 1.1rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.015);
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+html.dark .thrty-feature {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.thrty-feature:hover {
+  border-color: var(--thrty-brand);
+}
+
+.thrty-feature__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 0.4rem;
+  letter-spacing: -0.01em;
+}
+
+.thrty-feature__body {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: rgba(0, 0, 0, 0.68);
+  margin: 0;
+}
+
+html.dark .thrty-feature__body {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+/* Banner polish */
+.nextra-banner-container a {
+  font-weight: 500;
+}

@@ -1,0 +1,179 @@
+---
+title: SQS consumer
+---
+
+# SQS consumer
+
+Process an SQS batch one record at a time, with typed bodies, validation, partial-batch failure reporting, and optional dead-letter routing.
+
+```shell
+npm install @thrty/core @thrty/inject @thrty/validator @thrty/error-handler @thrty/sqs-record-iterator zod
+npm install --save-dev @types/aws-lambda
+```
+
+## The minimal chain
+
+```typescript filename="orderConsumer.ts"
+import type { SQSHandler } from 'aws-lambda';
+import { compose, typesOf } from '@thrty/core';
+import { inject } from '@thrty/inject';
+import { forEachSqsRecord } from '@thrty/sqs-record-iterator';
+import { errorHandler } from '@thrty/error-handler';
+import { validate, ValidationError } from '@thrty/validator';
+import { z } from 'zod';
+
+const OrderPlaced = z.object({ orderId: z.string(), total: z.number() });
+
+const ordersFactory = () => ({
+  save: async (order: z.infer<typeof OrderPlaced>) => { /* … */ },
+});
+
+export const handler = compose(
+  typesOf<SQSHandler>(),
+  inject({ orders: ordersFactory }),
+  forEachSqsRecord({ raw: true, batchItemFailures: true }),
+  errorHandler({
+    onError: (error) =>
+      error instanceof ValidationError
+        ? undefined                  // ACK → no infinite retry on malformed payloads
+        : Promise.reject(error),     // bubble → batchItemFailures marks for retry
+  }),
+  validate({
+    schema: OrderPlaced,
+    select: (event) => JSON.parse(event.record.body),
+    path: 'record.body',
+  }),
+)(async (event, context) => {
+  await context.deps.orders.save(event.record.body);
+});
+```
+
+What each middleware contributes:
+
+- `forEachSqsRecord({ raw: true, batchItemFailures: true })` — flips the event from `{ Records: [...] }` to a per-record event (`{ ...rest, record: SQSRecord & { body: string } }`) and calls downstream once per record. `raw: true` skips the default `JSON.parse` so `validate` can parse + validate in one step. `batchItemFailures: true` catches per-record throws and converts them into a partial-batch response.
+- `errorHandler` sits **between** the iterator and `validate` so it can intercept validation failures *before* the iterator catches them — see [Composition order](/composition-order) for why placement matters.
+
+## Parallel vs sequential
+
+## Parallel vs sequential
+
+`forEachSqsRecord` runs records concurrently with `Promise.all` by default. For FIFO queues with strict per-group ordering — or any consumer where one record's outcome affects the next — pass `sequential: true`:
+
+```typescript
+forEachSqsRecord({ batchItemFailures: true, sequential: true }),
+```
+
+In sequential + `batchItemFailures` mode, the iterator short-circuits on the first failure: every remaining record is marked as a `batchItemFailure` without being attempted. That's deliberate — if record N must come before N+1, processing N+1 after N failed would violate ordering.
+
+## ACK-on-failure with `errorHandler`
+
+The pattern from the minimal chain — map a specific error class to `undefined` to ACK the record — generalizes:
+
+```typescript
+errorHandler({
+  onError: (error) => {
+    if (error instanceof ValidationError) return undefined;       // ACK: malformed, no retry
+    if (error instanceof DuplicateError) return undefined;        // ACK: already processed
+    if (error instanceof RateLimitError) return Promise.reject(error); // retry
+    return Promise.reject(error);                                  // unknown → retry
+  },
+}),
+```
+
+Why ACK rather than retry? SQS doesn't know your error is "permanent." Without a hand-off, a malformed message will be redelivered until it hits the queue's `maxReceiveCount` (the redrive-to-DLQ threshold) — wasting invocations the whole way. Map errors you *know* are permanent to `undefined` so they're removed on first delivery.
+
+## Routing to a dead-letter store yourself
+
+If you want to capture permanently-failed messages somewhere richer than the queue's DLQ (e.g. a DynamoDB table for triage with the failure reason), do the write inside `onError`:
+
+```typescript
+errorHandler({
+  onError: async (error, { event, context }) => {
+    if (error instanceof ValidationError) {
+      await context.deps.deadLetters.put({
+        messageId: event.record.messageId,
+        body: event.record.body,
+        reason: 'validation',
+        issues: error.issues,
+      });
+      return undefined; // ACK
+    }
+    return Promise.reject(error);
+  },
+}),
+```
+
+Note `onError` receives both `event` and `context`, so injected dependencies (e.g. `context.deps.deadLetters`) are reachable.
+
+## SQS-triggered Lambdas without `batchItemFailures`
+
+If your queue isn't configured for partial-batch reporting (`FunctionResponseTypes: [ReportBatchItemFailures]`), set `batchItemFailures: false`. Any throw then aborts the whole batch — every record, including ones that already succeeded, is redelivered. That's only safe if your handler is idempotent.
+
+```typescript
+forEachSqsRecord({ batchItemFailures: false }),
+```
+
+## Skipping validation entirely
+
+If the producer is trusted, `bodyType` asserts the body's shape at type-level without a runtime check:
+
+```typescript
+import { of } from '@thrty/core';
+
+forEachSqsRecord({
+  batchItemFailures: true,
+  bodyType: of<{ orderId: string; total: number }>,
+}),
+```
+
+This is a TypeScript-only assertion — the body is `JSON.parse`d and trusted to match. Use it when you control the producer; otherwise prefer `validate`.
+
+## Non-JSON payloads
+
+For binary, Avro, protobuf, or plain text, set `raw: true` and decode inside `validate`'s `select`:
+
+```typescript
+forEachSqsRecord({ raw: true, batchItemFailures: true }),
+validate({
+  schema: SomeMessage,
+  select: (event) => decodeAvro(event.record.body),
+  path: 'record.body',
+}),
+```
+
+## A fuller composition
+
+The same chain with a structured logger and dead-letter routing added — every additional capability is one more middleware or one more `inject` provider:
+
+```typescript
+compose(
+  typesOf<SQSHandler>(),
+  inject({
+    logger: () => createLogger(),
+    orders: ordersFactory,
+    deadLetters: deadLettersTableFactory,
+  }),
+  forEachSqsRecord({ raw: true, batchItemFailures: true }),
+  errorHandler({
+    onError: async (error, { event, context }) => {
+      if (error instanceof ValidationError) {
+        await context.deps.deadLetters.put({
+          messageId: event.record.messageId,
+          body: event.record.body,
+          reason: 'validation',
+          issues: error.issues,
+        });
+        return undefined;
+      }
+      return Promise.reject(error);
+    },
+  }),
+  validate({
+    schema: OrderPlaced,
+    select: (event) => JSON.parse(event.record.body),
+    path: 'record.body',
+  }),
+)(async (event, context) => {
+  await context.deps.orders.save(event.record.body);
+});
+```
