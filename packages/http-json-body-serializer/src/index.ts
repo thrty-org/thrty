@@ -1,11 +1,11 @@
 import { APIGatewayProxyResult } from 'aws-lambda';
 import { Middleware, TypeRef } from '@thrty/core';
 
-export type SerializeJsonOptions<TBody = object> = Omit<APIGatewayProxyResult, 'body'> & {
+export type SerializeResponseBodyOptions<TBody = object> = Omit<APIGatewayProxyResult, 'body'> & {
   body?: TBody;
 };
-export const serializeJson =
-  <E, C, R1 extends APIGatewayProxyResult, R2 extends SerializeJsonOptions<TBody>, TBody>(
+export const serializeResponseBody =
+  <E, C, R1 extends APIGatewayProxyResult, R2 extends SerializeResponseBodyOptions<TBody>, TBody>(
     bodyType?: TypeRef<TBody>,
   ): Middleware<E, E, Promise<R1>, Promise<R2>, C, C> =>
   (next) =>

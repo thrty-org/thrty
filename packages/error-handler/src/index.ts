@@ -5,7 +5,7 @@ export interface ErrorLogger {
   [log: string]: any;
 }
 
-export interface ErrorHandlerOptions<TEvent, TContext, TResult> {
+export interface CatchErrorsOptions<TEvent, TContext, TResult> {
   /**
    * Called for every caught error, after logging. Return
    * `Promise.reject(...)` to propagate (the original or a mapped error);
@@ -33,9 +33,9 @@ export interface ErrorHandlerOptions<TEvent, TContext, TResult> {
  * semantics are preserved. Provide `onError` to map the error or substitute
  * a result (e.g. an HTTP response).
  */
-export const errorHandler =
+export const catchErrors =
   <TEvent, TContext, TResult>(
-    options: ErrorHandlerOptions<TEvent, TContext, TResult> = {},
+    options: CatchErrorsOptions<TEvent, TContext, TResult> = {},
   ): Middleware<TEvent, TEvent, Promise<TResult>, Promise<TResult>, TContext, TContext> =>
   (handler) =>
   async (event, context, ...rest: any[]) => {

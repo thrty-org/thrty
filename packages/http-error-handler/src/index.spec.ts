@@ -13,7 +13,7 @@ import {
   APIGatewayProxyEvent,
   APIGatewayProxyResult as AwsLambdaAPIGatewayProxyResult,
 } from 'aws-lambda';
-import { httpErrorHandler } from './index';
+import { catchHttpErrors } from './index';
 
 type APIGatewayProxyResult = Omit<AwsLambdaAPIGatewayProxyResult, 'body'> & {
   body?: string;
@@ -23,7 +23,7 @@ describe('simple setup', () => {
   let throwError: jest.Mock;
   let handler = compose(
     types<APIGatewayEvent, Promise<APIGatewayProxyResult>>(),
-    httpErrorHandler({ logger: false }),
+    catchHttpErrors({ logger: false }),
   )(async (event) => {
     throwError();
 
@@ -126,7 +126,7 @@ describe('simple setup', () => {
 describe('blacklist', () => {
   const handler = compose(
     types<APIGatewayEvent, Promise<APIGatewayProxyResult>>(),
-    httpErrorHandler({
+    catchHttpErrors({
       logger: false,
       blacklist: [{ alternativeMessage: 'Error', statusCode: 404 }],
     }),
@@ -184,7 +184,7 @@ describe('context.deps.logger', () => {
     inject({
       logger: () => ({ error: logError }),
     }),
-    httpErrorHandler(),
+    catchHttpErrors(),
   )(async (_event) => {
     throwError();
 
@@ -220,7 +220,7 @@ describe('options.logger', () => {
     logError = jest.fn();
     handler = compose(
       types<APIGatewayEvent, Promise<APIGatewayProxyResult>>(),
-      httpErrorHandler({
+      catchHttpErrors({
         logger: { error: logError },
       }),
     )(async (event) => {

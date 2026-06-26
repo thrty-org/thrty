@@ -1,7 +1,7 @@
 import { compose, eventType } from '@thrty/core';
 import { inject } from '@thrty/inject';
 import { args } from '@thrty/testing';
-import { errorHandler } from './index';
+import { catchErrors } from './index';
 
 class MappedError extends Error {
   constructor(public readonly cause: unknown) {
@@ -10,11 +10,11 @@ class MappedError extends Error {
   }
 }
 
-describe('errorHandler', () => {
+describe('catchErrors', () => {
   it('passes through when the handler does not throw', async () => {
     const handler = compose(
       eventType<{ ok: true }>(),
-      errorHandler({ logger: false }),
+      catchErrors({ logger: false }),
     )(async () => 'ok');
 
     await expect(handler(...args<{ ok: true }>({ ok: true }))).resolves.toBe('ok');
@@ -24,7 +24,7 @@ describe('errorHandler', () => {
     const error = new Error('boom');
     const handler = compose(
       eventType<{}>(),
-      errorHandler({ logger: false }),
+      catchErrors({ logger: false }),
     )(async () => {
       throw error;
     });
@@ -37,7 +37,7 @@ describe('errorHandler', () => {
     const error = new Error('boom');
     const handler = compose(
       eventType<{}>(),
-      errorHandler({ logger: { error: logError } }),
+      catchErrors({ logger: { error: logError } }),
     )(async () => {
       throw error;
     });
@@ -49,7 +49,7 @@ describe('errorHandler', () => {
   it('substitutes the result when onError returns a value', async () => {
     const handler = compose(
       eventType<{ id: string }>(),
-      errorHandler({
+      catchErrors({
         logger: false,
         onError: (_error, { event }) => ({ fallback: event.id }),
       }),
@@ -65,7 +65,7 @@ describe('errorHandler', () => {
   it('propagates a mapped error when onError throws', async () => {
     const handler = compose(
       eventType<{}>(),
-      errorHandler({
+      catchErrors({
         logger: false,
         onError: (error) => {
           throw new MappedError(error);
@@ -81,7 +81,7 @@ describe('errorHandler', () => {
   it('propagates a mapped error when onError returns Promise.reject(...)', async () => {
     const handler = compose(
       eventType<{}>(),
-      errorHandler({
+      catchErrors({
         logger: false,
         onError: (error) => Promise.reject(new MappedError(error)),
       }),
@@ -96,7 +96,7 @@ describe('errorHandler', () => {
     const onError = jest.fn().mockResolvedValue('handled');
     const handler = compose(
       eventType<{ id: string }>(),
-      errorHandler({ logger: false, onError }),
+      catchErrors({ logger: false, onError }),
     )(async () => {
       throw new Error('boom');
     });
@@ -111,7 +111,7 @@ describe('errorHandler', () => {
     const logError = jest.fn();
     const handler = compose(
       eventType<{}>(),
-      errorHandler({
+      catchErrors({
         logger: { error: logError },
         onError: () => undefined as unknown as void,
       }),
@@ -128,7 +128,7 @@ describe('errorHandler', () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const handler = compose(
       eventType<{}>(),
-      errorHandler({
+      catchErrors({
         logger: false,
         onError: () => undefined as unknown as void,
       }),
@@ -148,7 +148,7 @@ describe('errorHandler', () => {
       inject({
         logger: () => ({ error: logError }),
       }),
-      errorHandler({
+      catchErrors({
         onError: () => undefined as unknown as void,
       }),
     )(async () => {
@@ -167,7 +167,7 @@ describe('errorHandler', () => {
       inject({
         logger: () => ({ error: depsLogger }),
       }),
-      errorHandler({
+      catchErrors({
         logger: { error: optionsLogger },
         onError: () => undefined as unknown as void,
       }),
@@ -183,7 +183,7 @@ describe('errorHandler', () => {
   it('awaits async onError', async () => {
     const handler = compose(
       eventType<{}>(),
-      errorHandler({
+      catchErrors({
         logger: false,
         onError: () =>
           new Promise<string>((resolve) => setTimeout(() => resolve('async-handled'), 1)),

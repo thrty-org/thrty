@@ -1,13 +1,13 @@
 import { compose, types, of } from '@thrty/core';
 import { args } from '@thrty/testing';
 import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { serializeJson } from './index';
+import { serializeResponseBody } from './index';
 
 describe('given no body type is specified', () => {
   const createHandler = () =>
     compose(
       types<APIGatewayEvent, Promise<APIGatewayProxyResult>>(),
-      serializeJson(),
+      serializeResponseBody(),
     )(async (event) => {
       return {
         statusCode: 200,
@@ -45,7 +45,7 @@ describe('given body type is specified', () => {
   const createHandler = () =>
     compose(
       types<APIGatewayEvent, Promise<APIGatewayProxyResult>>(),
-      serializeJson(of<Message>),
+      serializeResponseBody(of<Message>),
     )(async (event) => {
       return {
         statusCode: 200,
@@ -81,7 +81,7 @@ describe('given body type is specified but not returned properly', () => {
   it('should throw ts error', () => {
     compose(
       types<APIGatewayEvent, Promise<APIGatewayProxyResult>>(),
-      serializeJson(of<{ id: string; description: string }>),
+      serializeResponseBody(of<{ id: string; description: string }>),
       // @ts-expect-error
     )(async (event) => {
       return {

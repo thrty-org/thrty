@@ -1,7 +1,7 @@
 import { compose, typesOf } from '@thrty/core';
 import { args } from '@thrty/testing';
 import { NotFoundError } from '@thrty/http-errors';
-import { httpErrorHandler } from '@thrty/http-error-handler';
+import { catchHttpErrors } from '@thrty/http-error-handler';
 import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
 import { handleCors } from './index';
 
@@ -150,12 +150,12 @@ describe('preflight', () => {
   });
 });
 
-describe('with httpErrorHandler', () => {
+describe('with catchHttpErrors', () => {
   beforeAll(() => {
     handler = compose(
       typesOf<APIGatewayProxyHandler>(),
       handleCors(),
-      httpErrorHandler({ logger: false }),
+      catchHttpErrors({ logger: false }),
     )(async () => {
       throw new NotFoundError('Not found');
     });

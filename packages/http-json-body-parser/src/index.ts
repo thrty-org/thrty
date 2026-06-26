@@ -1,10 +1,10 @@
 import { Middleware, TypeRef } from '@thrty/core';
 
-export interface ParseJsonRequiredEvent {
+export interface ParseRequestBodyRequiredEvent {
   body: string | null;
 }
-export const parseJson =
-  <T extends ParseJsonRequiredEvent, C, R, TBody = object>(
+export const parseRequestBody =
+  <T extends ParseRequestBodyRequiredEvent, C, R, TBody = object>(
     bodyType?: TypeRef<TBody>,
   ): Middleware<T, T & { jsonBody: TBody }, R, R, C, C> =>
   (handler) =>

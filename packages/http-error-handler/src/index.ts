@@ -1,5 +1,5 @@
 import { Middleware } from '@thrty/core';
-import { errorHandler } from '@thrty/error-handler';
+import { catchErrors } from '@thrty/error-handler';
 import { BaseError } from '@thrty/http-errors';
 import { APIGatewayProxyResult } from 'aws-lambda';
 
@@ -14,7 +14,7 @@ interface ErrorLogger {
   [log: string]: any;
 }
 
-export interface HttpErrorHandlerOptions {
+export interface CatchHttpErrorsOptions {
   /**
    * Logger to use for logging errors.
    * If not provided, console will be used.
@@ -35,20 +35,20 @@ export interface HttpErrorHandlerOptions {
   safeBaseError?: any;
 }
 
-type ResolvedHttpErrorHandlerOptions = Required<
-  Pick<HttpErrorHandlerOptions, 'blacklist' | 'safeBaseError'>
+type ResolvedCatchHttpErrorsOptions = Required<
+  Pick<CatchHttpErrorsOptions, 'blacklist' | 'safeBaseError'>
 >;
 
-type HttpErrorHandlerRequiredEvents = {
+type CatchHttpErrorsRequiredEvents = {
   path: string;
   httpMethod: string;
 };
 
-export const httpErrorHandler = <T extends HttpErrorHandlerRequiredEvents, C, R>(
-  options: HttpErrorHandlerOptions = {},
+export const catchHttpErrors = <T extends CatchHttpErrorsRequiredEvents, C, R>(
+  options: CatchHttpErrorsOptions = {},
 ): Middleware<T, T, Promise<R>, Promise<R>, C, C> => {
   const resolvedOptions = { ...defaultOptions, ...options };
-  return errorHandler<T, C, R>({
+  return catchErrors<T, C, R>({
     logger: options.logger,
     onError: (error) => {
       const { statusCode, message, ...errorProps } = getSafeResponse(resolvedOptions, error);
@@ -66,7 +66,7 @@ export const httpErrorHandler = <T extends HttpErrorHandlerRequiredEvents, C, R>
   });
 };
 
-export const getSafeResponse = (options: ResolvedHttpErrorHandlerOptions, error?: any) => {
+export const getSafeResponse = (options: ResolvedCatchHttpErrorsOptions, error?: any) => {
   const isSafeErrorInstance = error instanceof options.safeBaseError;
   if (!isSafeErrorInstance) {
     return {
@@ -95,7 +95,7 @@ const internalServerError = { statusCode: 500, alternativeMessage: 'InternalServ
 const forbiddenError = { statusCode: 403, alternativeMessage: 'Forbidden' };
 const unauthorizedError = { statusCode: 401, alternativeMessage: 'Unauthorized' };
 
-const defaultOptions: ResolvedHttpErrorHandlerOptions = {
+const defaultOptions: ResolvedCatchHttpErrorsOptions = {
   blacklist: [internalServerError, forbiddenError, unauthorizedError, unknownError],
   safeBaseError: BaseError,
 };
